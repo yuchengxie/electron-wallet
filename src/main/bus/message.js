@@ -127,7 +127,7 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
         for (var i = 0; i < arrayLen; i++) {
             var tmp = global_parse_func(buf, offset, prot);
             offset = tmp[0];
-            bRet.push(tmp[1]);
+            bRet.push(tmp[1]); 
         }
         return [offset, bRet];
     }
@@ -283,11 +283,10 @@ function parseInfo(payload) {
     return msg.parse(payload, 0);
 }
 
-function parseUtxo(buf) {
-    var payload = buf.slice(24);
+function parseUtxo(payload) {
     console.log('payload:', payload, payload.length);
-    // var msg = new bindMsg(gFormat.info);
-    // return msg.parse(payload, 0);
+    var msg = new bindMsg(gFormat.utxo);
+    return msg.parse(payload, 0);
 }
 
 module.exports = {

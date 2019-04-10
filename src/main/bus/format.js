@@ -8,9 +8,40 @@ var txns = {
 var txn = {
     getFmt: function () {
         return [
-            ['value', 'I'],
-            ['pk_script', str(2)]
+            ['version', 'I'],
+            ['tx_in', 'txn_in[]'],
+            ['tx_out', 'txn_out[]'],
+            ['lock_time', 'I'],
+            ['sig_raw', varstr],
         ];
+    }
+}
+
+var outpoint={
+    getFmt: function () {
+        return [
+            ['hash', 'B[32]'],
+            ['index', 'I'],
+        ]
+    }
+}
+
+var txn_in = {
+    getFmt: function () {
+        return [
+            ['prev_output', 'outpoint[]'],
+            ['sig_script', varstr],
+            ['sequence', 'I'],
+        ]
+    }
+}
+
+var txn_out = {
+    getFmt: function () {
+        return [
+            ['value', 'q'],
+            ['pk_script', varstr],
+        ]
     }
 }
 
@@ -56,24 +87,30 @@ var utxo = {
     getFmt: function () {
         return [
             ['link_no', 'I'],
-            ['heights', '[]'],
-            ['indexes', varstr],
-            ['txns', 'I'],
+            ['heights', 'I[]'],
+            ['indexes', 'I[]'],
+            ['txns', 'txn[]'],
         ];
     }
 }
 
 var gFormat = {
-    'I': null,
-    'txns': txns,
-    'txn': txn,
+    // 'I': null,
+    // 'txns': txns,
+    // 'txn': txn,
     'VS': varstr,
-    'S': str(3),
+    // 'S': str(3),
+    
+    'txn':txn,
+    'txn_in':txn_in,
+    'txn_out':txn_out,
+    'outpoint':outpoint,
+    'utxo': utxo,
 
     'found': found,
     'founds': founds,
     'info': info,
-    'utxo': utxo,
+    
 }
 
-module.exports=gFormat;
+module.exports = gFormat;

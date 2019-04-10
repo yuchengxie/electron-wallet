@@ -1,5 +1,7 @@
 const { ipcMain } = require('electron')
 const Wallet = require('./bus/wallet');
+const dhttp = require('dhttp');
+const message = require('./bus/message')
 // let file = require('../utils/file')
 // let infoparse = require('../parse/walletinfoparse');
 // let blockparse=require('../parse/blockparse');
@@ -21,7 +23,6 @@ ipcMain.on('save', function (event, data) {
     } else {
         throw Error('import wallet data error');
     }
-
 })
 
 ipcMain.on('create', function (event, data) {
@@ -71,72 +72,60 @@ ipcMain.on('create', function (event, data) {
 
 // })
 
-// ipcMain.on('info', function (event, data) {
-//     console.log('data:', data);
-//     let account = 'addr1';
-//     let password = 'xieyc';
-//     let pv = false;
-//     let pb = false;
-//     let after = 0;
-//     let before = 0;
-//     let address = '';
-//     var addr = file.readAccount(account, password);
+ipcMain.on('info', function (event, data) {
+    wallet = new Wallet('111111', 'addr1');
+    let pv = false;
+    let pb = false;
+    let after = 0;
+    let before = 0;
+    let address = '';
+    console.log('wallet:', wallet);
+    var addr = wallet.getAddrFromWallet();
+    console.log('addr:', addr);
 
-//     var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0'
+    var url = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0'
+    // var url = 'http://raw0.nb-chain.net/txn/state/account?addr=' + addr + '&uock=' + before + '&uock2=' + after;
+    console.log('url:', url);
+    dhttp(
+        {
+            url: url,
+            method: 'GET'
+        }, function (err, res) {
+            if (err) throw 'getinfo err';
+            var buf = res.body;
+            var payload = message.g_parse(buf);
+            var msg = message.parseInfo(payload)[1];
+            console.log('> msg:', msg);
+            event.sender.send('replyinfo', msg);
+        }
+    )
+})
 
-//     console.log('URL:', URL);
-//     http.get(URL, function (req, res) {
-//         req.headers = {
-//             'Content-Type': 'application/x-www-form-urlencoded',
-//         }
-//         req.timeout = 30;
-//         var arr = [];
-//         req.on('data', function (chunk) {
-//             arr.push(chunk);
-//         });
-//         req.on('end', function () {
-//             var b = arr[0];
-//             for (var i = 1; i < arr.length; i++) {
-//                 b0 = Buffer.concat(b0, arr[i]);
-//             }
-//             console.log('b:', b, b.length, b.toString('hex'));
-//             var obj=infoparse.parse(b);
-//             console.log('obj:',obj);
-//             event.sender.send('replyinfo',obj);
-//         });
-//     });
-// })
+ipcMain.on('utxo', function (event, data) {
+    // utxo(account, password, num, uock, address);
+    // var addr = file.readAccount(account, password);
+    // var uocks=5;
+    // 1119AwBxBnRX3SdNM67EwPGb9CmSTUcP3qk7hhNVUuSGdXJGLjEnis
+    // 1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV
+    var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]';
+    dhttp(
+        {
+            url: url,
+            method: 'GET'
+        }, function (err, res) {
+            if (err) throw 'getutxo err';
+            console.log('> utxo res:', res.body, res.body.length);
+            var buf = res.body;
+            var payload = message.g_parse(buf);
 
-// ipcMain.on('utxo',function(event,data){
-//     // utxo(account, password, num, uock, address);
-//     // var addr = file.readAccount(account, password);
-//     // var uocks=5;
-//     // 1119AwBxBnRX3SdNM67EwPGb9CmSTUcP3qk7hhNVUuSGdXJGLjEnis
-//     // 1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV
-//     var URL = 'http://raw0.nb-chain.net/txn/state/uock?addr=1119AwBxBnRX3SdNM67EwPGb9CmSTUcP3qk7hhNVUuSGdXJGLjEnis&num=5&uock2=[]'
-//     http.get(URL, function (req, res) {
-//         req.headers = {
-//             'Content-Type': 'application/x-www-form-urlencoded',
-//         }
-//         req.timeout = 30;
-//         var arr = [];
-//         req.on('data', function (chunk) {
-//             arr.push(chunk);
-//         });
-//         req.on('end', function () {
-//             var b = arr[0];
-//             for (var i = 1; i < arr.length; i++) {
-//                 b0 = Buffer.concat(b0, arr[i]);
-//             }
-//             console.log('b:', b, b.length, b.toString('hex'));
-//             var obj=utxoparse.parse(b);
-//             console.log('obj:',obj);
-//             event.sender.send('replyutxo',obj);
-//         });
-//     });
-
-//     console.log(data);
-// })
+            // var msg = message.parseUtxo(payload)[1];
+            // console.log('msg:', msg);
+            // var msg=message.parseInfo(res.body)[1];
+            // console.log('msg:',msg);
+            // event.sender.send('replyutxo',obj);
+        }
+    )
+})
 
 // /**
 //  * test

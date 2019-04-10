@@ -5,25 +5,40 @@ window.onload = function () {
     var btn_wallet_create = getElement('frame_wallet_create', 'btn_wallet_create');
     var phone = getElement('frame_wallet_create', 'phone');
     var pwd = getElement('frame_wallet_create', 'pwd');
-    var addr = getElement('frame_wallet_create', 'addr');
+    var addr_create = getElement('frame_wallet_create', 'addr_create');
     btn_wallet_create.onclick = function () {
-        var v = phone.value + pwd.value;
-        console.log('phone v:', v, v.length);
-        ipcRenderer.send('create', v);
+        var v_phone = phone.value;
+        var v_pwd = pwd.value;
+        console.log(v_phone);
+        console.log(v_pwd);
+        console.log(v_phone+v_pwd);
+        ipcRenderer.send('create', [v_phone+v_pwd,v_pwd]);
     }
 
     ipcRenderer.on('replycreate', function (event, data) {
         if (data) {
             console.log('replycreate:', data, data.length);
-            addr.innerText = data;
+            addr_create.innerText = data;
         }
     })
 
     //wallet_import
     var btn_wallet_import = getElement('frame_wallet_import', 'btn_wallet_import');
+    var addr_import = getElement('frame_wallet_import', 'addr_import');
+    var p_import_pwd = getElement('frame_wallet_import', 'p_import_pwd');
+    var import_prvk = getElement('frame_wallet_import', 'import_prvk');
     btn_wallet_import.onclick = function () {
-        ipcRenderer.send('save', '4dabbaf739e4dfec415fea38f1efdbb67a0786746db3d1063b2339a44fb13458');
+        var pvk = import_prvk.value;
+        var pwd = p_import_pwd.value;
+        ipcRenderer.send('save', [pvk, pwd]);
     }
+
+    ipcRenderer.on('replysave', function (event, data) {
+        if (data) {
+            console.log('replysave:', data, data.length);
+            addr_import.innerText = data;
+        }
+    })
 
     //wallet_info
     var btn_wallet_info = getElement('frame_wallet_info', 'btn_wallet_info');
@@ -72,7 +87,7 @@ window.onload = function () {
     var txn_count = getElement('frame_block', 'txn_count');
     ipcRenderer.on('replyblock', function (event, data) {
         console.log(data);
-        block_list.style.display='block';
+        block_list.style.display = 'block';
         b_link_no.innerText = 'link_no:' + data.link_no;
         heights.innerText = 'heights:' + data.heights[0];
         txcks.innerText = 'txcks:' + data.txcks[0];
@@ -85,27 +100,27 @@ window.onload = function () {
         txn_count.innerText = 'txn_count:' + data.headers[0].txn_count;
     })
 
-    var btn_utxo=getElement('frame_utxo','btn_utxo');
-    btn_utxo.onclick=function(){
-        ipcRenderer.send('utxo','utxo查询');
+    var btn_utxo = getElement('frame_utxo', 'btn_utxo');
+    btn_utxo.onclick = function () {
+        ipcRenderer.send('utxo', 'utxo查询');
     }
-    ipcRenderer.on('replyutxo',function(event,data){
+    ipcRenderer.on('replyutxo', function (event, data) {
         console.log(data);
     })
 
 
-    var addrfrom=getElement('frame_transfer','addrfrom')
-    var addrto=getElement('frame_transfer','addrto')
-    var t_value=getElement('frame_transfer','t_value')
-    var btn_txns=getElement('frame_transfer','btn_txns')
-    btn_txns.onclick=function(){
+    var addrfrom = getElement('frame_transfer', 'addrfrom')
+    var addrto = getElement('frame_transfer', 'addrto')
+    var t_value = getElement('frame_transfer', 't_value')
+    var btn_txns = getElement('frame_transfer', 'btn_txns')
+    btn_txns.onclick = function () {
         // var from=addrfrom.value;
         // var to=addrfrom.value;
         // var value=t_value.value;
         // console.log('btn_txns');
         // ipcRenderer.send('transfer')
     }
-    
+
 }
 
 

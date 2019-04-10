@@ -20,19 +20,33 @@
                     秘钥:
                 </div>
                 <div class="row">
-                    <textarea rows="2" style="resize:none;display:flex;justify-content: center;align-items: center" type="pwd"
-                        class="form-control" placeholder="谨慎输入...">
-                        4dabbaf739e4dfec415fea38f1efdbb67a0786746db3d1063b2339a44fb13458
-                    </textarea>
+                    <textarea style="resize:none;display:flex;justify-content: center;align-items: center" type="pwd"
+                        class="form-control" placeholder="谨慎输入..."
+                        id='import_prvk'>4dabbaf739e4dfec415fea38f1efdbb67a0786746db3d1063b2339a44fb13458</textarea>
                 </div>
             </div>
-            
+
+            <div class="col-7 control-group">
+                <div class="row col-form-label">
+                    设置密码:
+                </div>
+                <div class="row">
+                    <input style="resize:none;display:flex;justify-content: center;align-items: center" type="pwd"
+                        class="form-control" placeholder="设置密码" id='p_import_pwd'>
+                    </input>
+                </div>
+            </div>
+
             <div class="col-7 form-group">
                 <div class="row col-form-label justify-content-center control-group">
                     <button class="btn btn-info col word my-3" id='btn_wallet_import'>
                         导入钱包
                     </button>
                 </div>
+            </div>
+
+            <div class="col-7 form-group">
+                <span id='addr_import'></span>
             </div>
 
         </div>

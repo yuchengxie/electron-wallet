@@ -1,34 +1,50 @@
-// const { ipcMain } = require('electron')
+const { ipcMain } = require('electron')
+const Wallet = require('./bus/wallet');
 // let file = require('../utils/file')
 // let infoparse = require('../parse/walletinfoparse');
 // let blockparse=require('../parse/blockparse');
 // let utxoparse=require('../parse/utxoparse');
 // let http=require('http');
-const A=require('./bus/wallet');
-var a=new A('xieyc');
 
-console.log(a);
-// a.create('18800000000123456');
-//4dabbaf739e4dfec415fea38f1efdbb67a0786746db3d1063b2339a44fb13458
-a.save('4dabbaf739e4dfec415fea38f1efdbb67a0786746db3d1063b2339a44fb13458');
+var wallet;
+
+ipcMain.on('save', function (event, data) {
+    console.log(data);
+    if (data.length == 2) {
+        if (data[1].length == 0) throw Error('password can not be empty');
+        wallet = new Wallet(data[1]);
+        var addr = wallet.save(data[0]);
+        console.log(addr);
+        if (addr) {
+            event.sender.send('replysave', addr);
+        }
+    } else {
+        throw Error('import wallet data error');
+    }
+
+})
+
+ipcMain.on('create', function (event, data) {
+    console.log(data);
+    if (data.length == 2) {
+        if (data[1].length == 0) throw Error('password can not be empty');
+        wallet = new Wallet(data[1]);
+        var addr = wallet.create(data[0]);
+        if (addr) {
+            event.sender.send('replycreate', addr);
+        }
+    } else {
+        throw Error('create wallet data error');
+    }
 
 
-// ipcMain.on('save', function (event, data) {
-//     file.save(data);
-// })
-
-// ipcMain.on('create', function (event, data) {
-//     let addr = file.create(data);
-//     if (addr) {
-//         event.sender.send('replycreate', addr);
-//     }
-// })
+})
 
 // ipcMain.on('block',function(event,data){
 //     var height=20299;
 //     var hash='00...';
 //     var URL = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=20299'
-    
+
 //     console.log('URL:', URL);
 //     http.get(URL, function (req) {
 //         req.headers = {
@@ -67,7 +83,7 @@ a.save('4dabbaf739e4dfec415fea38f1efdbb67a0786746db3d1063b2339a44fb13458');
 //     var addr = file.readAccount(account, password);
 
 //     var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0'
-    
+
 //     console.log('URL:', URL);
 //     http.get(URL, function (req, res) {
 //         req.headers = {

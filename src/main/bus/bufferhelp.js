@@ -1,5 +1,4 @@
 
-
 function bufToNumer(buf) {
     var t = 0;
     for (var i = 0; i < buf.length; i++) {

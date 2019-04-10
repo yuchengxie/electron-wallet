@@ -8,7 +8,7 @@ const R = {
     Transfer:'transfer',
 }
 
-const Index=R.Home;
+const Index=R.Wallet_Import;
 
 var navhome = document.getElementById('nav_home');
 var navwallet = document.getElementById('nav_wallet_create');

@@ -1,83 +1,7 @@
+const gFormat=require('./format')
+const sha256 = require('js-sha256');
 
-function isArray(value) {
-    return Object.prototype.toString.call(value) === '[object Array]';
-}
-
-var txns = {
-    getFmt: function () {
-        return 'txn[]';
-    }
-}
-
-
-var txn = {
-    getFmt: function () {
-        return [
-            ['value', 'I'],
-            ['pk_script', str(2)]
-        ];
-    }
-}
-
-var varstr = {
-    getFmt: function () {
-        return 'VS[]';
-    }
-}
-
-var str = (n) => {
-    return 'S[' + n + ']';
-}
-
-var test1 = {
-    getFmt: function () {
-        return [
-            ['txns', 'txn[]'],
-            ['version', str(2)]
-        ];
-    }
-}
-
-var found = {
-    getFmt: function () {
-        return [
-            ['uock', 'q'],
-            ['value', 'q'],
-            ['height', 'I'],
-        ]
-    }
-}
-
-var founds = {
-    getFmt: function () {
-        return 'found[]';
-    }
-}
-
-var info = {
-    getFmt: function () {
-        return [
-            ['link_no', 'I'],
-            ['timestamp', 'I'],
-            ['account', varstr],
-            ['search', 'I'],
-            ['found', founds],
-        ];
-    }
-}
-
-var gFormat = {
-    'I': null,
-    'txns': txns,
-    'txn': txn,
-    'VS': varstr,
-    'S': str(3),
-    'test1': test1,
-
-    'found': found,
-    'founds': founds,
-    'info': info,
-}
+const magic = Buffer.from([0xf9, 0x6e, 0x62, 0x74]);
 
 function bindMsg(prot) {
     function Msg() {
@@ -87,6 +11,10 @@ function bindMsg(prot) {
     Msg.prototype = prot;
     var obj = new Msg();
     return obj;
+}
+
+function isArray(value) {
+    return Object.prototype.toString.call(value) === '[object Array]';
 }
 
 function global_binary_func(msg, buf, prot, arrayLen) {
@@ -182,33 +110,10 @@ function global_binary_func(msg, buf, prot, arrayLen) {
             }
         }
     }
-    console.log('binary buf:',buf,buf.length);
+    console.log('binary buf:', buf, buf.length);
     return buf;
 }
 
-//binary测试
-// 00 00 00 00 5f b8 ac 5c 36 31 31 31 38 4d 69 35 58 78 71 6d 71 54 42 70 37 54 6e 50 51 64 31 48 6b 
-// 39 58 59 61 67 4a 51 70 44 63 5a 75 36 45 69 47 45 ...
-var m = {
-    link_no: 1,
-    timestamp: 1554798165,
-    account: '1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV',
-    search: 1024,
-    found: [
-        {
-            uock: 111,
-            value: 222,
-            height: 333
-        }
-    ]
-}
-console.log(m);
-var buf = new Buffer(0);
-msg = new bindMsg(gFormat.info);
-var b = msg.binary(m, buf);
-// msg = new bindMsg(gFormat.info);
-// var b = msg.parse(payload, 0);
-// console.log('b:', b);
 
 
 function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
@@ -292,7 +197,7 @@ function standard(buf, fmt, offset, arrayLen) {//standard format
         return [offset + 8, bufToNumer(buf.slice(offset, offset + 8).reverse())];
     }
     if (fmt == 'S') {   //fixed-len-str
-        len = parseInt(arrayLen.split('_')[1]);
+        var len = parseInt(arrayLen.split('_')[1]);
         return [offset + len, (buf.slice(offset, offset + len)).toString('latin1')];
     }
 }
@@ -325,57 +230,66 @@ function toBufEndian(num, isHex, len) {
     return b0;
 }
 
+function toBuffer(hex) {
+    var typedArray = new Uint8Array(hex.match(/[\da-f]{2}/gi).map(function (h) {
+        return parseInt(h, 16)
+    }))
+    var buffer = typedArray.buffer
+    buffer = Buffer.from(buffer);
+    return buffer;
+}
+
+function strip(buf) {
+    var arr = [];
+    for (var i = 0; i < buf.length; i++) {
+        arr.push(buf[i]);
+    }
+    for (var i = arr.length - 1; i >= 0; i--) {
+        if (arr[i] == 0x00) {
+            arr.splice(i, 1);
+        } else {
+            break;
+        }
+    }
+    return Buffer.from(arr);
+}
+
+function g_parse(data) {
+    if (data.slice(0, 4).equals(magic) != 1) {
+        throw Error('bad magic number');
+    }
+    var buf = data.slice(16, 20);
+    var value = bufToNumer(buf);
+    var buf = Buffer.allocUnsafe(4);
+    buf.writeUInt32LE(value, 0);
+    var v2 = bufToNumer(buf);
+    var payload = data.slice(24, 24 + v2);
+    //check the checksum
+    var checksum = toBuffer(sha256(toBuffer(sha256(payload)))).slice(0, 4);
+    if (data.slice(20, 24).compare(checksum) != 0) {
+        throw Error('bad checksum');
+    }
+    var command = data.slice(4, 16);
+    var stripCommand = strip(command);
+    var msg_type = stripCommand.toString('latin1');
+    console.log('> msg_type:', msg_type, msg_type.length);
+    return payload;
+}
 
 
-// console.log('b:', b);
-// var msg = {
-//     link_no: 0,
-//     timestamp: 1554798165,
-//     account: '1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV',
-//     search: 1024,
-//     found: {
-//         uock: 111,
-//         value: 222,
-//         height: 333,
-//     }
-// }
+function parseInfo(payload) {
+    console.log('payload:', payload, payload.length);
+    var msg = new bindMsg(gFormat.info);
+    return msg.parse(payload, 0);
+}
 
-//parse测试
-// var testBuf = Buffer('\x02\x11\x00\x00\x00\x11\x00\x00\x00');
-// var testBuf = Buffer.from('02020101010101010100102a040201030502030203aa0d01001020304050607070201000000001010101020202', 'hex');
-// console.log(testBuf, testBuf.length);
-//测试数组
-// var msg = new bindMsg(gFormat.txns)
-// console.log(msg);
-// var b = msg.parse(testBuf, 0);
-// console.log(b);
-//测试固定长度字符串
-// var msg = new bindMsg(gFormat.S);
-// var b = msg.parse(testBuf, 0);
-// console.log(msg);
-// console.log(b);
-//测试变长字符串
-// var msg = new bindMsg(gFormat.S);
-// var b = msg.parse(testBuf, 0);
-// console.log(b);
-//测试一个对象
-// msg = new bindMsg(gFormat.test1);
-// var b = msg.parse(testBuf, 0);
-// console.log('b:', b);
-//测试info
+function parseUtxo(buf) {
+    var payload = buf.slice(24);
+    console.log('payload:', payload, payload.length);
+    // var msg = new bindMsg(gFormat.info);
+    // return msg.parse(payload, 0);
+}
 
-// var dhttp = require('dhttp');
-// var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
-// dhttp({
-//     method: 'GET',
-//     url: URL,
-// }, function (err, res) {
-//     if (err) throw err;
-//     buf = res.body;
-//     //测试info
-//     payload = buf.slice(24);
-//     console.log('payload:', payload, payload.length);
-//     msg = new bindMsg(gFormat.info);
-//     var b = msg.parse(payload, 0);
-//     console.log('b:', b);
-// })
+module.exports = {
+    bindMsg,g_parse, parseInfo, parseUtxo
+}

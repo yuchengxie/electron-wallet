@@ -13,11 +13,10 @@ const bufferhelp = require('./bufferhelp');
 var default_fp = path.join(__dirname, '../../../data/');
 var fp = path.join(__dirname, '../../../data/account/');
 
-function Wallet(password, filename, BIP32) {//Wallet
+function Wallet(password, filename) {//Wallet
 
-    this.password = password;
+    this.password = password == undefined ? '12345678' : password;
     this.filename = filename == undefined ? 'addr1.cfg' : filename;
-    this.BIP32 = BIP32;
 
     this.create = create;
     this.save = save;
@@ -25,8 +24,7 @@ function Wallet(password, filename, BIP32) {//Wallet
     this.genAddr = genAddr;
     this.sign = sign;
     this.verify = verify;
-    this.getWallet = getWallet;
-    // this.readFromFile = readFromFile;
+    this.getAddrFromWallet = getAddrFromWallet;
 }
 
 function create(str) {// create loacl wallet *.cfg file 
@@ -44,7 +42,7 @@ function create(str) {// create loacl wallet *.cfg file
 }
 
 function save(prvKeyStr) {//import prvkey to local *.fgfile
-    console.log(prvKeyStr,prvKeyStr.length);
+    console.log(prvKeyStr, prvKeyStr.length);
     if (prvKeyStr.length != 64)
         throw Error('length must be 64');
     var BIP32 = bip32.fromPrivateKey(bufferhelp.hexToBuffer(prvKeyStr), new Buffer(32));
@@ -81,21 +79,27 @@ function genAddr(BIP32) {// generate address
     return addr;
 }
 
-function getWallet(password, filename) {
-    filename = filename == undefined ? this.filename : filename;
-    if (password == undefined) throw 'password empty';
+function getWalletInfo() {
+
+}
+
+function getAddrFromWallet() {
+    var filename=this.filename;
+    var password=this.password;
+    console.log('filename:',filename,password);
+    if (password == undefined || filename==undefined) throw 'wallet error';
     var data = readFromFile(filename);
     var encrypt_prvkey = data['prvkey'];
     var s = AES.Decrypt(encrypt_prvkey, password);
     var n = bs58check.decode(s.slice(2));
     var prvKeyBuf = n.slice(1, 33);
     var BIP32 = bip32.fromPrivateKey(prvKeyBuf, new Buffer(32));
-    this.BIP32 = BIP32;
-    return this;
+    var addr = genAddr(BIP32);
+    return addr;
 }
 
 function readFromFile(filename) {//read file
-    const data = fs.readFileSync(fp + filename, "utf-8");//sync read
+    const data = fs.readFileSync(fp + filename + '.cfg', "utf-8");//sync read
     return JSON.parse(data);
 }
 

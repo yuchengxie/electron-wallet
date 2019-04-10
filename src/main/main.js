@@ -4,6 +4,14 @@
 // let blockparse=require('../parse/blockparse');
 // let utxoparse=require('../parse/utxoparse');
 // let http=require('http');
+const A=require('./bus/wallet');
+var a=new A('xieyc');
+
+console.log(a);
+// a.create('18800000000123456');
+//4dabbaf739e4dfec415fea38f1efdbb67a0786746db3d1063b2339a44fb13458
+a.save('4dabbaf739e4dfec415fea38f1efdbb67a0786746db3d1063b2339a44fb13458');
+
 
 // ipcMain.on('save', function (event, data) {
 //     file.save(data);

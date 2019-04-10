@@ -1,6 +1,6 @@
 
 const crypto = require('crypto');
- 
+
 function Encrypt(data, key) {
     console.log('key:',key);
     const cipher = crypto.createCipher('aes-128-ecb', key);

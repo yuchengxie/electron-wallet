@@ -1,6 +1,7 @@
 var message = require('./message');
 var gFormat = require('./format');
 var dhttp = require('dhttp');
+let http = require('http');
 
 var bindMsg = message.bindMsg;
 //binary测试
@@ -71,16 +72,55 @@ var bindMsg = message.bindMsg;
 //测试utxo
 // var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
 // var URL = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]'
-var URL = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]'
+// var URL = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]'
+// dhttp({
+//     method: 'GET',
+//     url: URL,
+// }, function (err, res) {
+//     if (err) throw err;
+//     var buf = res.body;
+//     console.log('> res:', buf, buf.length);
+//     var payload = message.g_parse(buf);
+//     console.log('> res:', payload, payload.length);
+//     var msg = message.parseUtxo(payload)[1];
+//     console.log('> msg:', msg);
+// })
+
+//测试block
+var url = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=20299'
 dhttp({
-    method: 'GET',
-    url: URL,
+    url: url,
+    method: 'GET'
 }, function (err, res) {
-    if (err) throw err;
+    if (err) throw 'getinfo err';
     var buf = res.body;
     console.log('> res:', buf, buf.length);
     var payload = message.g_parse(buf);
-    console.log('> res:', payload, payload.length);
-    var msg = message.parseUtxo(payload)[1];
+    var msg = message.parseBlock(payload)[1];
     console.log('> msg:', msg);
 })
+
+// var height = 20299;
+// var hash = '00...';
+// var URL = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=20299'
+
+// console.log('URL:', URL);
+// http.get(URL, function (req) {
+//     req.headers = {
+//         'Content-Type': 'application/x-www-form-urlencoded',
+//     }
+//     req.timeout = 30;
+//     // var arr = [];
+//     var buf=new Buffer(0);
+//     req.on('data', function (chunk) {
+//         // arr.push(chunk);
+//         buf=Buffer.concat([buf,chunk]);
+//     });
+//     req.on('end', function () {
+//         console.log('> buf:',buf,buf.length);
+//         var payload = message.g_parse(buf);
+//         var msg = message.parseBlock(payload);
+//         // var msg = message.parseBlock(payload);
+//         console.log('> msg:', msg[1],msg[0]);
+//     });
+// });

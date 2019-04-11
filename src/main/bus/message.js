@@ -161,6 +161,8 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
                 offset = ret[0];
                 if (ft == 'VS') {// var-len-str
                     return global_parse_func(buf, offset, 'S', 'strlen_' + subArrayLen);
+                } else if (ft == 'VInt') {// var-len-int
+                    return global_parse_func(buf, offset, 'Int', 'intlen_' + subArrayLen);
                 } else {
                     return global_parse_func(buf, offset, fmt2, subArrayLen);
                 }
@@ -187,13 +189,12 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
         var subObj = new bindMsg(prot);
         for (var i = 0, item; item = fmt[i]; i++) {
             var attrName = item[0], attrType = item[1];
-            if (attrName == 'hash') {
+            if (attrName == 'txn_count') {
                 var a = 1;
             }
             var ret = global_parse_func.apply(subObj, [buf, offset, attrType]);
             offset = ret[0];
             subObj[attrName] = ret[1];
-            // console.log('attrname:', attrName, attrType, subObj);
         }
         return [offset, subObj];
     }
@@ -216,6 +217,12 @@ function standard(buf, fmt, offset, arrayLen) {//standard format
     if (fmt == 'B') {   //fixed-byte-length
         var len = parseInt(arrayLen.split('_')[1]);
         return [offset + len, bufferhelp.bufToStr(buf.slice(offset, offset + len))];
+    }
+    if (fmt == 'Int') {   //fixed-integer-length
+        var value = parseInt(arrayLen.split('_')[1]);
+        if (value < 0xFD) //todo expand more
+            return [offset, value];
+
     }
 }
 
@@ -296,7 +303,7 @@ function g_parse(data) {
 
 function parseBlock(payload) {
     console.log('payload:', payload, payload.length);
-    var msg = new bindMsg(gFormat.info);
+    var msg = new bindMsg(gFormat.block);
     return msg.parse(payload, 0);
 }
 
@@ -313,5 +320,5 @@ function parseUtxo(payload) {
 }
 
 module.exports = {
-    bindMsg, g_parse, parseInfo, parseUtxo,parseBlock
+    bindMsg, g_parse, parseInfo, parseUtxo, parseBlock
 }

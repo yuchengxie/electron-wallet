@@ -8,7 +8,7 @@ var txn = {
     getFmt: function () {
         return [
             ['version', 'I'],
-            ['tx_in',tx_ins],
+            ['tx_in', tx_ins],
             ['tx_out', tx_outs],
             ['lock_time', 'I'],
             ['sig_raw', varstr],
@@ -22,7 +22,7 @@ var tx_outs = {
     }
 }
 
-var tx_out={
+var tx_out = {
     getFmt: function () {
         return [
             ['value', 'q'],
@@ -31,7 +31,7 @@ var tx_out={
     }
 }
 
-var tx_ins={
+var tx_ins = {
     getFmt: function () {
         return 'tx_in[]';
     }
@@ -59,6 +59,12 @@ var outpoint = {
 var varstr = {
     getFmt: function () {
         return 'VS[]';
+    }
+}
+
+var varInt = {
+    getFmt: function () {
+        return 'VInt[]';
     }
 }
 
@@ -109,13 +115,49 @@ var utxo = {
     }
 }
 
+
+var block = {
+    getFmt: function () {
+        return [
+            ['link_no', 'I'],
+            ['heights', 'I[]'],
+            ['txcks', 'q[]'],
+            ['headers', blockheaders],
+        ];
+    }
+}
+
+var blockheaders = {
+    getFmt: function () {
+        return 'blockheader[]';
+    }
+}
+
+var blockheader = {
+    getFmt: function () {
+        return [
+            ['version', 'I'],
+            ['link_no', 'I'],
+            ['prev_block', byte(32)],
+            ['merkle_root', byte(32)],
+            ['timestamp', 'I'],
+            ['bits', 'I'],
+            ['nonce', 'I'],
+            ['miner', byte(32)],
+            ['sig_tee', varstr],
+            ['txn_count', varInt],
+        ]
+    }
+}
+
 var gFormat = {
     // 'I': null,
     'VS': varstr,
+    'VInt': varInt,
 
     'txn': txn,
-    'tx_in':tx_in,
-    'tx_out':tx_out,
+    'tx_in': tx_in,
+    'tx_out': tx_out,
     'outpoint': outpoint,
     'utxo': utxo,
 
@@ -123,8 +165,9 @@ var gFormat = {
     'founds': founds,
     'info': info,
 
-    // 'block':
-    
+    'blockheader': blockheader,
+    'block': block
+
 }
 
 module.exports = gFormat;

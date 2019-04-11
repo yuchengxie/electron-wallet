@@ -132,9 +132,7 @@ window.onload = function () {
         // console.log('btn_txns');
         // ipcRenderer.send('transfer')
     }
-
 }
-
 
 function getElement(frameId, eleId) {
     var ele = document.getElementById(frameId).contentWindow.document.getElementById(eleId);

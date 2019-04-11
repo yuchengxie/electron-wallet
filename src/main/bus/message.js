@@ -1,5 +1,6 @@
-const gFormat=require('./format')
+const gFormat = require('./format')
 const sha256 = require('js-sha256');
+const bufferhelp = require('./bufferhelp');
 
 const magic = Buffer.from([0xf9, 0x6e, 0x62, 0x74]);
 
@@ -127,7 +128,7 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
         for (var i = 0; i < arrayLen; i++) {
             var tmp = global_parse_func(buf, offset, prot);
             offset = tmp[0];
-            bRet.push(tmp[1]); 
+            bRet.push(tmp[1]);
         }
         return [offset, bRet];
     }
@@ -148,8 +149,13 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
     if (typeof (fmt) === 'string') {
         if (fmt[fmt.length - 1] == ']') {
             if (fmt[fmt.length - 2] == '[') {// 'fmt_name[]' means var-len-array
+
                 var ft = fmt.slice(0, fmt.length - 2);
                 var fmt2 = gFormat[fmt.slice(0, fmt.length - 2)];
+
+                if (fmt2 == null) {
+                    fmt2 = fmt.slice(0, fmt.length - 2)
+                }
                 var ret = global_parse_func(buf, offset, 'V');// ret = [new_offset,result]
                 var subArrayLen = ret[1];
                 offset = ret[0];
@@ -162,8 +168,11 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
             else {// 'fmt_name[n]' means fix length array
                 var b = fmt.split('[');
                 if (b[0] == 'S') {// fix length str
-                    strlen = parseInt(b[1].split(']')[0]);
+                    var strlen = parseInt(b[1].split(']')[0]);
                     return global_parse_func(buf, offset, 'S', 'strlen_' + strlen);
+                } else if (b[0] == 'B') {
+                    var bytelen = parseInt(b[1].split(']')[0]);
+                    return global_parse_func(buf, offset, 'B', 'bytelen_' + bytelen);
                 } else {
                     var subArrayLen = parseInt(b[1].split(']')[0]);
                     var fmt2 = gFormat[b[0]];
@@ -178,9 +187,13 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
         var subObj = new bindMsg(prot);
         for (var i = 0, item; item = fmt[i]; i++) {
             var attrName = item[0], attrType = item[1];
+            if (attrName == 'hash') {
+                var a = 1;
+            }
             var ret = global_parse_func.apply(subObj, [buf, offset, attrType]);
             offset = ret[0];
             subObj[attrName] = ret[1];
+            // console.log('attrname:', attrName, attrType, subObj);
         }
         return [offset, subObj];
     }
@@ -198,7 +211,11 @@ function standard(buf, fmt, offset, arrayLen) {//standard format
     }
     if (fmt == 'S') {   //fixed-len-str
         var len = parseInt(arrayLen.split('_')[1]);
-        return [offset + len, (buf.slice(offset, offset + len)).toString('latin1')];
+        return [offset + len, bufferhelp.bufToStr(buf.slice(offset, offset + len))];
+    }
+    if (fmt == 'B') {   //fixed-byte-length
+        var len = parseInt(arrayLen.split('_')[1]);
+        return [offset + len, bufferhelp.bufToStr(buf.slice(offset, offset + len))];
     }
 }
 
@@ -277,6 +294,12 @@ function g_parse(data) {
 }
 
 
+function parseBlock(payload) {
+    console.log('payload:', payload, payload.length);
+    var msg = new bindMsg(gFormat.info);
+    return msg.parse(payload, 0);
+}
+
 function parseInfo(payload) {
     console.log('payload:', payload, payload.length);
     var msg = new bindMsg(gFormat.info);
@@ -290,5 +313,5 @@ function parseUtxo(payload) {
 }
 
 module.exports = {
-    bindMsg,g_parse, parseInfo, parseUtxo
+    bindMsg, g_parse, parseInfo, parseUtxo,parseBlock
 }

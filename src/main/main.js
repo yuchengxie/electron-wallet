@@ -2,6 +2,7 @@ const { ipcMain } = require('electron')
 const Wallet = require('./bus/wallet');
 const dhttp = require('dhttp');
 const message = require('./bus/message')
+const bh=require('./bus/bufferhelp');
 // let file = require('../utils/file')
 // let infoparse = require('../parse/walletinfoparse');
 // let blockparse=require('../parse/blockparse');
@@ -72,6 +73,23 @@ ipcMain.on('create', function (event, data) {
 
 // })
 
+ipcMain.on('block', function (event, data) {
+    // var height = 20299;
+    // var hash = '00...';
+    var URL = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=20299'
+    dhttp({
+        url: url,
+        method: 'GET'
+    }, function (err, res) {
+        if (err) throw 'getinfo err';
+        var buf = res.body;
+        var payload = message.g_parse(buf);
+        var msg = message.parseInfo(payload)[1];
+        console.log('> msg:', msg);
+        event.sender.send('replyblock',block);
+    })
+})
+
 ipcMain.on('info', function (event, data) {
     wallet = new Wallet('111111', 'addr1');
     let pv = false;
@@ -95,7 +113,8 @@ ipcMain.on('info', function (event, data) {
             var buf = res.body;
             var payload = message.g_parse(buf);
             var msg = message.parseInfo(payload)[1];
-            console.log('> msg:', msg);
+            msg['account']= bh.hexToBuffer(msg['account']).toString('latin1');
+            console.log('> info msg:', msg);
             event.sender.send('replyinfo', msg);
         }
     )
@@ -116,13 +135,14 @@ ipcMain.on('utxo', function (event, data) {
             if (err) throw 'getutxo err';
             console.log('> utxo res:', res.body, res.body.length);
             var buf = res.body;
-            var payload = message.g_parse(buf);
 
-            // var msg = message.parseUtxo(payload)[1];
-            // console.log('msg:', msg);
-            // var msg=message.parseInfo(res.body)[1];
-            // console.log('msg:',msg);
-            // event.sender.send('replyutxo',obj);
+            var payload = message.g_parse(buf);
+            console.log('> res:', payload, payload.length);
+            var msg = message.parseUtxo(payload)[1];
+            console.log('> msg:', msg);
+            if (msg) {
+                event.sender.send('replyutxo', msg);
+            }
         }
     )
 })

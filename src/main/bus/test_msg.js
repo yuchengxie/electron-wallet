@@ -70,6 +70,7 @@ var bindMsg = message.bindMsg;
 
 //测试utxo
 // var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
+// var URL = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]'
 var URL = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]'
 dhttp({
     method: 'GET',
@@ -81,5 +82,5 @@ dhttp({
     var payload = message.g_parse(buf);
     console.log('> res:', payload, payload.length);
     var msg = message.parseUtxo(payload)[1];
-    // console.log('> msg:', msg);
+    console.log('> msg:', msg);
 })

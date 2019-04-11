@@ -4,43 +4,54 @@ var txns = {
     }
 }
 
-
 var txn = {
     getFmt: function () {
         return [
             ['version', 'I'],
-            ['tx_in', 'txn_in[]'],
-            ['tx_out', 'txn_out[]'],
+            ['tx_in',tx_ins],
+            ['tx_out', tx_outs],
             ['lock_time', 'I'],
             ['sig_raw', varstr],
         ];
     }
 }
 
-var outpoint={
+var tx_outs = {
+    getFmt: function () {
+        return 'tx_out[]';
+    }
+}
+
+var tx_out={
     getFmt: function () {
         return [
-            ['hash', 'B[32]'],
-            ['index', 'I'],
+            ['value', 'q'],
+            ['pk_script', varstr],
         ]
     }
 }
 
-var txn_in = {
+var tx_ins={
+    getFmt: function () {
+        return 'tx_in[]';
+    }
+}
+
+var tx_in = {
     getFmt: function () {
         return [
-            ['prev_output', 'outpoint[]'],
+            ['prev_output', outpoint],
             ['sig_script', varstr],
             ['sequence', 'I'],
         ]
     }
 }
 
-var txn_out = {
+var outpoint = {
     getFmt: function () {
         return [
-            ['value', 'q'],
-            ['pk_script', varstr],
+            ['hash', byte(32)],
+            ['index', 'I'],
         ]
     }
 }
@@ -53,6 +64,10 @@ var varstr = {
 
 var str = (n) => {
     return 'S[' + n + ']';
+}
+
+var byte = (n) => {
+    return 'B[' + n + ']';
 }
 
 var found = {
@@ -89,27 +104,26 @@ var utxo = {
             ['link_no', 'I'],
             ['heights', 'I[]'],
             ['indexes', 'I[]'],
-            ['txns', 'txn[]'],
+            ['txns', txns],
         ];
     }
 }
 
 var gFormat = {
     // 'I': null,
-    // 'txns': txns,
-    // 'txn': txn,
     'VS': varstr,
-    // 'S': str(3),
-    
-    'txn':txn,
-    'txn_in':txn_in,
-    'txn_out':txn_out,
-    'outpoint':outpoint,
+
+    'txn': txn,
+    'tx_in':tx_in,
+    'tx_out':tx_out,
+    'outpoint': outpoint,
     'utxo': utxo,
 
     'found': found,
     'founds': founds,
     'info': info,
+
+    // 'block':
     
 }
 

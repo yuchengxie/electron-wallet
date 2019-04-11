@@ -11,8 +11,8 @@ window.onload = function () {
         var v_pwd = pwd.value;
         console.log(v_phone);
         console.log(v_pwd);
-        console.log(v_phone+v_pwd);
-        ipcRenderer.send('create', [v_phone+v_pwd,v_pwd]);
+        console.log(v_phone + v_pwd);
+        ipcRenderer.send('create', [v_phone + v_pwd, v_pwd]);
     }
 
     ipcRenderer.on('replycreate', function (event, data) {
@@ -100,12 +100,24 @@ window.onload = function () {
         txn_count.innerText = 'txn_count:' + data.headers[0].txn_count;
     })
 
+    //utxo
     var btn_utxo = getElement('frame_utxo', 'btn_utxo');
+    var utxo_list = getElement('frame_utxo', 'utxo_list');
     btn_utxo.onclick = function () {
         ipcRenderer.send('utxo', 'utxo查询');
     }
     ipcRenderer.on('replyutxo', function (event, data) {
         console.log(data);
+        if (data) {
+            //demo
+            for (var i = 0; i < 3; i++) {
+                var ele = document.createElement('li');
+                ele.className='list-group-item';
+                ele.id='list_'+i;
+                ele.innerText='111';
+                utxo_list.appendChild(ele);
+            }
+        }
     })
 
 

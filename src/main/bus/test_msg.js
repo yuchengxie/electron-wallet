@@ -87,18 +87,18 @@ var bindMsg = message.bindMsg;
 // })
 
 //测试block
-var url = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=20299'
-dhttp({
-    url: url,
-    method: 'GET'
-}, function (err, res) {
-    if (err) throw 'getinfo err';
-    var buf = res.body;
-    console.log('> res:', buf, buf.length);
-    var payload = message.g_parse(buf);
-    var msg = message.parseBlock(payload)[1];
-    console.log('> msg:', msg);
-})
+// var url = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=20299'
+// dhttp({
+//     url: url,
+//     method: 'GET'
+// }, function (err, res) {
+//     if (err) throw 'getinfo err';
+//     var buf = res.body;
+//     console.log('> res:', buf, buf.length);
+//     var payload = message.g_parse(buf);
+//     var msg = message.parseBlock(payload)[1];
+//     console.log('> msg:', msg);
+// })
 
 // var height = 20299;
 // var hash = '00...';
@@ -124,3 +124,5 @@ dhttp({
 //         console.log('> msg:', msg[1],msg[0]);
 //     });
 // });
+
+//交易测试

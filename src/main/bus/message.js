@@ -189,9 +189,6 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
         var subObj = new bindMsg(prot);
         for (var i = 0, item; item = fmt[i]; i++) {
             var attrName = item[0], attrType = item[1];
-            if (attrName == 'txn_count') {
-                var a = 1;
-            }
             var ret = global_parse_func.apply(subObj, [buf, offset, attrType]);
             offset = ret[0];
             subObj[attrName] = ret[1];

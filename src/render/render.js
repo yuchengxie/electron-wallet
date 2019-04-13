@@ -112,29 +112,37 @@ window.onload = function () {
             //demo
             for (var i = 0; i < 3; i++) {
                 var ele = document.createElement('li');
-                ele.className='list-group-item';
-                ele.id='list_'+i;
-                ele.innerText='111';
+                ele.className = 'list-group-item';
+                ele.id = 'list_' + i;
+                ele.innerText = '111';
                 utxo_list.appendChild(ele);
             }
         }
     })
 
-
-    var addrfrom = getElement('frame_transfer', 'addrfrom')
-    var addrto = getElement('frame_transfer', 'addrto')
-    var t_value = getElement('frame_transfer', 't_value')
-    var btn_txns = getElement('frame_transfer', 'btn_txns')
+    //交易
+    var addrfrom = getElement('frame_transfer', 'addrfrom');
+    console.log('addrfrom:',addrfrom);
+    var addrto = getElement('frame_transfer', 'addrto');
+    var t_value = getElement('frame_transfer', 't_value');
+    var btn_txns = getElement('frame_transfer', 'btn_txns');
+    // var btn_utxo = getElement('frame_utxo', 'btn_utxo');
+    console.log('btn_txns:',btn_txns);
     btn_txns.onclick = function () {
-        // var from=addrfrom.value;
-        // var to=addrfrom.value;
-        // var value=t_value.value;
-        // console.log('btn_txns');
-        // ipcRenderer.send('transfer')
+        var from=addrfrom.value;
+        var to=addrto.value;
+        var value=t_value.value;
+        console.log('btn_txns');
+        ipcRenderer.send('transfer',[from,to,value]);
     }
 }
+
+
+
+
 
 function getElement(frameId, eleId) {
     var ele = document.getElementById(frameId).contentWindow.document.getElementById(eleId);
     return ele;
 }
+

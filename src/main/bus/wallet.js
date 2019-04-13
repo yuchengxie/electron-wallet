@@ -24,6 +24,7 @@ function Wallet(password, filename) {//Wallet
     this.genAddr = genAddr;
     this.sign = sign;
     this.verify = verify;
+    this.getBIP32=getBIP32;
     this.getAddrFromWallet = getAddrFromWallet;
 }
 
@@ -79,8 +80,18 @@ function genAddr(BIP32) {// generate address
     return addr;
 }
 
-function getWalletInfo() {
-
+function getBIP32() {
+    var filename=this.filename;
+    var password=this.password;
+    console.log('filename:',filename,password);
+    if (password == undefined || filename==undefined) throw 'wallet error';
+    var data = readFromFile(filename);
+    var encrypt_prvkey = data['prvkey'];
+    var s = AES.Decrypt(encrypt_prvkey, password);
+    var n = bs58check.decode(s.slice(2));
+    var prvKeyBuf = n.slice(1, 33);
+    var BIP32 = bip32.fromPrivateKey(prvKeyBuf, new Buffer(32));
+    return BIP32;
 }
 
 function getAddrFromWallet() {
@@ -103,8 +114,10 @@ function readFromFile(filename) {//read file
     return JSON.parse(data);
 }
 
-function sign() {
-
+function sign(BIP32,buf){
+    var hash=bitcoinjs.crypto.sha256(buf);
+    var s=BIP32.sign(hash);
+    return s;
 }
 
 function verify() {

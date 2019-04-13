@@ -19,9 +19,28 @@ function numToBuf(num, isHex) {
     return new Buffer.from(s, 'hex');
 }
 
+function numToBuf(num, isHex,n) {
+    isHex == undefined ? false : isHex;
+    var s = '';
+    if (!isHex) {
+        s = num.toString(16);
+    }
+    if ((s.length) % 2 != 0) {
+        s = '0' + s;
+    }
+    var b1=new Buffer(n);
+    var b2=new Buffer.from(s, 'hex')
+    if(b1.length<b2.length) throw 'numToBuf err';
+    for(var i=0;i<b2.length;i++){
+        b1[i]=b2[i];
+    }
+    return b1;
+}
+
 function toBufEndian(num, isHex, len) {
     var b0 = new Buffer(len);
     var b1 = numToBuf(num, isHex);
+    if(b1.length<b2.length) throw 'toBufEndian err';
     for (var i = 0; i < b1.length; i++) {
         b0[i] = b1[i];
     }
@@ -51,6 +70,16 @@ function hexToBuffer(hex) {
     return buffer;
 }
 
+function strToBuffer(str,n){
+    var b1=new Buffer(n);
+    var b2=new Buffer(str);
+    if(b1.length<b2.length) throw 'strToBuffer err';
+    for(var i=0;i<b2.length;i++){
+        b1[i]=b2[i];
+    }
+    return b1;
+}
+
 module.exports={
-    bufToNumer,numToBuf,toBufEndian,bufToStr,hexToBuffer
+    bufToNumer,numToBuf,toBufEndian,bufToStr,hexToBuffer,strToBuffer
 }

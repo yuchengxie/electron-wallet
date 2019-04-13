@@ -19,6 +19,7 @@ function isArray(value) {
 }
 
 function global_binary_func(msg, buf, prot, arrayLen) {
+
     if (prot == undefined) {
         prot = this.__proto__;
     }
@@ -26,18 +27,27 @@ function global_binary_func(msg, buf, prot, arrayLen) {
         if (prot.getFmt != undefined) {
             fmt = prot.getFmt();
             for (var i = 0; i < arrayLen; i++) {
-                m = msg[i];
+                var m = msg[i];
                 for (var j = 0; j < fmt.length; j++) {
                     fmt2 = fmt[j];
-                    attrName = fmt2[0];
-                    attrType = fmt2[1];
-                    v = m[attrName];
-                    ret = global_binary_func(v, buf, attrType);
+                    var attrName = fmt2[0];
+                    var attrType = fmt2[1];
+                    var v = m[attrName];
+                    var ret = global_binary_func(v, buf, attrType);
                     buf = Buffer.concat([buf, ret]);
                 }
             }
-            return buf;
+        } else {
+            fmt = prot;
+            for (var i = 0; i < arrayLen; i++) {
+                var m = msg[i];
+                var fmt2 = fmt.split('[')[0];
+                var ret = global_binary_func(m, buf, fmt2);
+                buf = Buffer.concat([buf, ret]);
+            }
         }
+
+        return buf;
     }
 
     var fmt;
@@ -45,7 +55,7 @@ function global_binary_func(msg, buf, prot, arrayLen) {
         fmt = prot;
     } else {
         if (prot.getFmt == undefined) {
-            fmt = gFormat('S');
+            fmt = gFormat['S'];
         } else {
             fmt = prot.getFmt();
         }
@@ -59,7 +69,8 @@ function global_binary_func(msg, buf, prot, arrayLen) {
                     var ret = global_binary_func(msg, buf, 'V')//ret value map buf
                     buf = Buffer.concat([buf, ret]);
                     if (ft == 'VS') {// var-len-str
-                        return global_binary_func(msg, buf, 'S');
+                        ret = global_binary_func(msg, buf, 'S');
+                        buf = Buffer.concat([buf, ret]);
                     }
                 } else if (arrayLen.split('_')[0].includes('arr')) {
                     var v = arrayLen.split('_')[1];
@@ -67,8 +78,15 @@ function global_binary_func(msg, buf, prot, arrayLen) {
                 }
             } else { //fixed length arr/str
                 var b = fmt.split('[');
-                if (b[0] == 'S') { //str
+                if (b[0] == 'VS') { //str
+                    var len = msg.length;
+                    //str - length
+                    var retv = global_binary_func(len, buf, 'V');
+                    //str - content
+                    var rets = global_binary_func(msg, buf, 'S')
+                    return Buffer.concat([retv, rets]);
                 } else { //arr
+
                 }
             }
         } else {
@@ -77,16 +95,17 @@ function global_binary_func(msg, buf, prot, arrayLen) {
                 return toBufEndian(msg, false, 4);
             }
             if (fmt == 'V') {
-                var len = msg.length;
-                return toBufEndian(len, false, 1);
+                // var len = msg.length;
+                return toBufEndian(msg, false, 1);
             }
             if (fmt == 'S') {
-                var b1 = new Buffer(msg);
-                var b2 = Buffer.concat([buf, b1]);
-                return b2;
+                return new Buffer(msg);
             }
             if (fmt == 'q') {
                 return toBufEndian(msg, false, 8);
+            }
+            if (fmt == 'H') {
+                return toBufEndian(msg, false, 2);
             }
         }
     } else if (isArray(fmt)) {
@@ -94,11 +113,19 @@ function global_binary_func(msg, buf, prot, arrayLen) {
         for (var i = 0, item; item = fmt[i]; i++) {
             var attrName = item[0], attrType = item[1];
             var v = msg[attrName];
+            if (attrName == 'sig_raw') {
+                var a = 1;
+            }
             if (isArray(v)) {
                 var ret = global_binary_func.apply(subObj, [v, buf, attrType, 'arr_' + v.length]);//返回[buf];
                 buf = Buffer.concat([buf, ret]);
-                var f = gFormat[attrName];
-                buf = global_binary_func.apply(subObj, [v, buf, f, v.length]);
+                var fmt2 = gFormat[attrName];
+                if (fmt2 == undefined) {
+                    buf = global_binary_func.apply(subObj, [v, buf, attrType, v.length]);
+                } else {
+                    buf = global_binary_func.apply(subObj, [v, buf, fmt2, v.length]);
+                }
+
             } else {
                 // v = msg[attrName];
                 if (typeof (v) == 'string') {
@@ -111,11 +138,8 @@ function global_binary_func(msg, buf, prot, arrayLen) {
             }
         }
     }
-    console.log('binary buf:', buf, buf.length);
     return buf;
 }
-
-
 
 function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
 
@@ -239,6 +263,7 @@ function numToBuf(num, isHex) {
     if ((s.length) % 2 != 0) {
         s = '0' + s;
     }
+    // return new Buffer.from(s, 'hex');
     return new Buffer.from(s, 'hex');
 }
 
@@ -297,6 +322,19 @@ function g_parse(data) {
     return payload;
 }
 
+function g_binary(payload,command){
+    //4-16
+    var b_command=bufferhelp.strToBuffer(command,12);
+    //16-20 payload len
+    var len_command=bufferhelp.numToBuf(payload.length,false,4);
+    //20-24
+    var checksum = toBuffer(sha256(toBuffer(sha256(payload)))).slice(0, 4);
+
+    var b=Buffer.concat([magic,b_command,len_command,checksum,payload]);
+
+    return b;
+}
+
 
 function parseBlock(payload) {
     console.log('payload:', payload, payload.length);
@@ -317,5 +355,5 @@ function parseUtxo(payload) {
 }
 
 module.exports = {
-    bindMsg, g_parse, parseInfo, parseUtxo, parseBlock
+    bindMsg, g_parse, parseInfo, parseUtxo, parseBlock,g_binary
 }

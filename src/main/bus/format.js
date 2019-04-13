@@ -150,8 +150,114 @@ var blockheader = {
     }
 }
 
+var pay_from = {
+    getFmt: function () {
+        return [
+            ['value', 'q'],
+            ['address', varstr],
+        ]
+    }
+}
+
+var pay_froms = {
+    getFmt: function () {
+        return 'pay_from[]';
+    }
+}
+
+var pay_tos = {
+    getFmt: function () {
+        return 'pay_to[]';
+    }
+}
+
+var pay_to = {
+    getFmt: function () {
+        return [
+            ['value', 'q'],
+            ['address', varstr],
+        ]
+    }
+}
+
+var last_uocks = {
+    getFmt: function () {
+        return 'q[]';
+    }
+}
+
+var makesheet = {
+    getFmt: function () {
+        return [
+            ['vcn', 'H'],
+            ['sequence', 'I'],
+            ['pay_from', pay_froms],
+            ['pay_to', pay_tos],
+            ['scan_count', 'H'],
+            ['min_utxo', 'q'],
+            ['max_utxo', 'q'],
+            ['sort_flag', 'I'],
+            ['last_uocks', 'q[]'],
+        ]
+    }
+}
+
+var varStrLists = {
+    getFmt: function () {
+        return 'varStrList[]'
+    }
+}
+
+
+var varStrList = {
+    getFmt: function () {
+        return [
+            ['items', varstr]
+        ]
+    }
+}
+
+var orgsheet = {
+    getFmt: function () {
+        return [
+            ['sequence', 'I[]'],
+            ['pks_out', varStrLists],
+            ['last_uocks', 'q[]'],
+            ['version', 'I'],
+            ['tx_in', tx_ins],
+            ['tx_out', tx_outs],
+            ['lock_time', 'I'],
+            ['signature', varstr],
+        ]
+    }
+}
+
+var flextxn = {
+    getFmt: function () {
+        return [
+            ['version', 'I'],
+            ['tx_in', tx_ins],
+            ['tx_out', tx_outs],
+            ['lock_time', 'I'],
+        ]
+    }
+}
+
+var transaction = {
+    getFmt: function () {
+        return [
+            ['version', 'I'],
+            ['tx_in', tx_ins],
+            ['tx_out', tx_outs],
+            ['lock_time', 'I'],
+            ['sig_raw', varstr],
+        ]
+    }
+}
+
 var gFormat = {
     // 'I': null,
+    'S': null,
     'VS': varstr,
     'VInt': varInt,
 
@@ -166,8 +272,18 @@ var gFormat = {
     'info': info,
 
     'blockheader': blockheader,
-    'block': block
+    'block': block,
 
+    'pay_from': pay_from,
+    'pay_to': pay_to,
+    'makesheet': makesheet,
+
+    'varStrList': varStrList,
+    'orgsheet': orgsheet,
+
+    'flextxn': flextxn,
+
+    'transaction': transaction,
 }
 
 module.exports = gFormat;

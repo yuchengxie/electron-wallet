@@ -1,13 +1,8 @@
 const { ipcMain } = require('electron')
-const Wallet = require('./bus/wallet');
 const dhttp = require('dhttp');
+const Wallet = require('./bus/wallet');
 const message = require('./bus/message')
 const bh = require('./bus/bufferhelp');
-// let file = require('../utils/file')
-// let infoparse = require('../parse/walletinfoparse');
-// let blockparse=require('../parse/blockparse');
-// let utxoparse=require('../parse/utxoparse');
-// let http=require('http');
 
 var wallet;
 
@@ -38,42 +33,7 @@ ipcMain.on('create', function (event, data) {
     } else {
         throw Error('create wallet data error');
     }
-
-
 })
-
-
-
-// ipcMain.on('block',function(event,data){
-//     var height=20299;
-//     var hash='00...';
-//     var URL = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=20299'
-
-//     console.log('URL:', URL);
-//     http.get(URL, function (req) {
-//         req.headers = {
-//             'Content-Type': 'application/x-www-form-urlencoded',
-//         }
-//         req.timeout = 30;
-//         var arr = [];
-//         req.on('data', function (chunk) {
-//             arr.push(chunk);
-//         });
-//         req.on('end', function () {
-//             var b = arr[0];
-//             for (var i = 1; i < arr.length; i++) {
-//                 b0 = Buffer.concat(b0, arr[i]);
-//             }
-//             console.log('b:', b, b.length, b.toString('hex'));
-//             var block=blockparse.parse(b);
-//             // var obj=p.parse(b);
-//             // console.log('obj:',obj);
-//             event.sender.send('replyblock',block);
-//         });
-//     });
-
-
-// })
 
 ipcMain.on('block', function (event, data) {
     // var height = 20299;
@@ -103,7 +63,8 @@ ipcMain.on('info', function (event, data) {
     var addr = wallet.getAddrFromWallet();
     console.log('addr:', addr);
 
-    var url = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0'
+    //1118hfRMRrJMgSCoV9ztyPcjcgcMZ1zThvqRDLUw3xCYkZwwTAbJ5o
+    var url = 'http://raw0.nb-chain.net/txn/state/account?addr=1118hfRMRrJMgSCoV9ztyPcjcgcMZ1zThvqRDLUw3xCYkZwwTAbJ5o&uock=0&uock2=0'
     // var url = 'http://raw0.nb-chain.net/txn/state/account?addr=' + addr + '&uock=' + before + '&uock2=' + after;
     console.log('url:', url);
     dhttp(
@@ -128,7 +89,8 @@ ipcMain.on('utxo', function (event, data) {
     // var uocks=5;
     // 1119AwBxBnRX3SdNM67EwPGb9CmSTUcP3qk7hhNVUuSGdXJGLjEnis
     // 1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV
-    var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]';
+    //1118hfRMRrJMgSCoV9ztyPcjcgcMZ1zThvqRDLUw3xCYkZwwTAbJ5o
+    var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118hfRMRrJMgSCoV9ztyPcjcgcMZ1zThvqRDLUw3xCYkZwwTAbJ5o&num=5&uock2=[]';
     dhttp(
         {
             url: url,
@@ -145,4 +107,9 @@ ipcMain.on('utxo', function (event, data) {
             event.sender.send('replyutxo', msg);
         }
     )
+})
+
+ipcMain.on('transfer',function(event,data){
+    
+    console.log(data);
 })

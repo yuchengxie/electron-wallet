@@ -13,6 +13,7 @@ const bufferhelp = require('./bufferhelp');
 var default_fp = path.join(__dirname, '../../../data/');
 var fp = path.join(__dirname, '../../../data/account/');
 var default_fullpath = path.join(__dirname, '../../../data/default.cfg');
+var default_file = 'default.cfg';
 
 function Wallet(password, filename) {//Wallet
     this.password = password;
@@ -37,9 +38,9 @@ function init() {
     console.log('isExist:', a);
     if (fs.existsSync(default_fullpath)) {
         console.log('default.cfg存在');
-        var data = readFromFile('default.cfg', true);
+        var data = readFromFile(default_file, true);
         if (data && data['password']) {
-            return new Wallet(data['password'], default_fullpath);
+            return new Wallet(data['password'], default_file);
         } else {
             console.log('wallet file not exist,need create new');
             return new Wallet();
@@ -144,15 +145,19 @@ function validate() {
 }
 
 function readFromFile(filename, isDefault) {//read file
+    console.log('isDefault:', isDefault);
+    console.log('filename:', filename);
     var dir = '';
-    if (isDefault != undefined && isDefault == true) {
+    if (isDefault == true || filename==default_file) {
         dir = default_fp;
     } else {
         dir = fp;
     }
+    console.log('dir:', dir);
     console.log('readFromFile filename:', filename);
     const data = fs.readFileSync(dir + filename, "utf-8");//sync read
-    if (data.length != 0) {
+    console.log('readFromFile data:', data);
+    if (data && data.length > 0) {
         return JSON.parse(data);
     } else {
         // throw(filename+' data err');

@@ -18,15 +18,17 @@ ipcMain.on('getwallets', function (event, data) {
 ipcMain.on('changewallet', function (event, data) {
     if (data.length == 2) {
         console.log('changewallet:', data);
-        wallet.filename = data[0] + '.cfg';
-        wallet.password = data[1];
-
-        // if(wallet.validate()){
-        //     event.sender.send('replychangewallet','true');
-        // }else{
-        // }
-        // console.log('result:',wallet.validate());
-        event.sender.send('replychangewallet', [wallet.validate(),wallet.filename]);
+        var currentfile=data[0]+'.cfg';
+        var currentpassword=data[1];
+        var w=new Wallet(currentpassword,currentfile);
+        var result='';
+        if(w.validate()){
+            wallet=w;
+            result='true';
+        }else{
+            result='false';
+        }
+        event.sender.send('replychangewallet', [result,wallet.filename]);
     }
 })
 

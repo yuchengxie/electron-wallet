@@ -1,7 +1,8 @@
 const ipcRenderer = require('electron').ipcRenderer;
 
-var filename;
-var password;
+var filename='';
+var password='';
+var currentfn='';
 
 window.onload = function () {
     //init default wallet
@@ -9,17 +10,7 @@ window.onload = function () {
 
     var input_change_pwd = getElement('frame_wallet_change', 'input_change_pwd');
     var b_change = getElement('frame_wallet_change', 'b_change');
-    var wallet_name = getElement('frame_wallet_change', 'wallet_name');
     var btn_wallet_change = getElement('frame_wallet_change', 'btn_wallet_change');
-
-    // var childs = b_change.children;
-    // console.log('hahha childs:',childs,childs.length);
-    // console.log('childs[0] value:',childs[0]);
-    // if (childs.length>=1){
-    //     // console.log('hahha childs:',childs,childs.length);
-    //     console.log('childs[0] value:',childs[0].value);
-    // }
-   
 
     ipcRenderer.on('replygetwallets', function (event, data) {
         var childs = b_change.children;
@@ -31,58 +22,43 @@ window.onload = function () {
             var name = data[i].split('.')[0];
             var ele = document.createElement('option');
             ele.innerText = name;
-            //default
-            if(i==0){
-                filename=ele.innerText;
-                console.log('>> filename',filename);
-            }
             b_change.appendChild(ele);
         }
+        currentfn=b_change.value;
     });
 
     b_change.onchange = function (e) {
         //输入钱包设置密码
-        filename = e.target.value;
-
-        console.log('changewallet e:', filename);
-        // wallet_name.innerText = filename;
+        currentfn=e.target.value;
+        console.log('changewallet e:', currentfn);
     }
 
     btn_wallet_change.onclick = function () {
-        // var filename = wallet_name.value;
-        password = input_change_pwd.value;
-        console.log('filename:', filename)
-        if (isEmpty(filename)) {
+        var currentpwd = input_change_pwd.value;
+        console.log('filename:', currentfn);
+        if (isEmpty(currentfn)) {
             alert('filename can not be empty');
             return;
         }
-        if (isEmpty(password)) {
+        if (isEmpty(currentpwd)) {
             alert('password can not be empty');
             return;
         }
+        password=currentpwd;
+        filename=currentfn;
         ipcRenderer.send('changewallet', [filename, password]);
     }
 
     ipcRenderer.on('replychangewallet', function (event, data) {
+        console.log('replychangewallet data:',data);
         if (data && data.length == 2) {
-            if (data[0] == true) {
+            if (data[0] == 'true') {
                 alert('change success to wallet:' + data[1]);
             } else {
                 alert('password error');
             }
         }
     })
-
-    function changewallet(e) {
-        // e.prentDefault();
-        // alert(e);
-        //输入钱包设置密码
-        //filename = e.target.innerText;
-
-        //console.log('changewallet e:',filename);
-        // wallet_name.innerText = filename;
-    }
-
 
     //wallet_create
     var btn_wallet_create = getElement('frame_wallet_create', 'btn_wallet_create');

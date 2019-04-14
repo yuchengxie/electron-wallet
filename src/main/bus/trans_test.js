@@ -193,7 +193,8 @@ dhttp({
             var payload = make_payload(pks_out0[idx], orgsheetMsg.version, orgsheetMsg.tx_in, orgsheetMsg.tx_out, 0, idx, hash_type)  //lock_time=0
             // //签名
             console.log('payload:', payload, payload.length);
-            var wallet = new Wallet('123456', 'addr1');
+            // var wallet = new Wallet('123456', 'addr1');
+            var wallet=new Wallet('xieyc','default.cfg');
             console.log('wallet:', wallet);
             var BIP32 = wallet.getBIP32();
             console.log('>>> bip32:', BIP32);
@@ -279,71 +280,10 @@ function make_payload(subscript, txns_ver, txns_in, txns_out, lock_time, input_i
     // var payload = parse(tx_copy);
     var msg = new bindMsg(gFormat.flextxn);
     var payload = msg.binary(tx_copy, new Buffer(0));
-
+    // console.log('payload:', payload, payload.length);
     return payload;
 
-    // console.log('payload:', payload, payload.length);
 }
-
-
-
-
-//     var wallet = file.getwallet();
-//     // var coin_hash = Buffer.concat([wallet.pubkey, wallet.coin_type0]);
-//     var d = {};
-//     var payto = makesheet.pay_to
-//     for (var i = 0; i < payto.length; i++) {
-//         var p = payto[i];
-//         if (p.value != 0 || p.address.slice(0, 1) != 0x6a) {
-//             var ret = decode_check(p.address);
-//             d[ret] = p.value;
-//         }
-//     }
-
-
-//     var pks_out0 = orgsheetMsg.pks_out[0].items;
-//     var pks_num = pks_out0.length;
-//     var tx_ins2 = [];
-//     // console.log('pks_num:',pks_num);
-//     //sign every inputs
-//     var tx_In = orgsheetMsg.tx_in;
-//     for (var idx = 0; idx < tx_In.length; idx++) {
-//         var tx_in = tx_In[idx];
-//         if (idx < pks_num) {
-//             var hash_type = 1;
-//             var payload = script.make_payload(pks_out0[idx], orgsheetMsg.version, orgsheetMsg.tx_in, orgsheetMsg.tx_out, 0, idx, hash_type)  //lock_time=0
-//             //签名
-//             console.log('payload:', payload, payload.length);
-//             var BIP32 = file.getwallet().BIP32;
-//             // console.log('>>> bip32:',BIP32);
-//             var sig = Buffer.concat([secret.sign(BIP32, payload), CHR(hash_type)]);
-//             // console.log('sig:', sig, sig.length);
-//             var pub_key = BIP32.publicKey;
-//             // console.log('pub_key:',pub_key,pub_key.length);
-//             var sig_script = Buffer.concat([CHR(sig), sig, CHR(pub_key), pub_key]);
-//             // console.log('sig_script:', sig_script, sig_script.length);
-//             var txin = new TxnIn();
-//             tx_in.prev_output, sig_script, tx_in.sequence
-//             txin.prev_output = tx_in.prev_output;
-//             txin.sig_script = tx_in.sig_script;
-//             txin.sequence = tx_in.sequence;
-//             tx_ins2.push(txin);
-//         }
-//     }
-//     console.log('tx_ins2:', tx_ins2, tx_ins2.length);
-
-//     // txn = protocol.Transaction(msg2.version,tx_ins2,msg2.tx_out,msg2.lock_time,b'')
-//     var transaction = new Transaction();
-//     transaction.version = orgsheetMsg.version;
-//     transaction.tx_in = tx_ins2;
-//     transaction.tx_out = orgsheetMsg.tx_out;
-//     transaction.lock_time = orgsheetMsg.lock_time;
-//     transaction.sig_raw = 0x0;
-
-//     // var p = compayloadTran(transaction);
-//     // console.log('>>> tranmsg:', transaction);
-//     // console.log('>>> compayloadTran:', p, p.length);
-// })
 
 function decode_check(v) {
     var a = bs58.decode(v);

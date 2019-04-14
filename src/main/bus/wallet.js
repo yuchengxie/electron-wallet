@@ -151,6 +151,9 @@ function readFromFile(filename, isDefault) {//read file
     } else {
         dir = fp;
     }
+    if(!filename.includes('.cfg')){
+        filename=filename+'.cfg';
+    }
     console.log('dir:', dir);
     console.log('readFromFile filename:', filename);
     const data = fs.readFileSync(dir + filename, "utf-8");//sync read

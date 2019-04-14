@@ -6,12 +6,12 @@ const bh = require('./bus/bufferhelp');
 
 //set default wallet
 var wallet = new Wallet();
-// wallet = wallet.init();
+wallet = wallet.init();
 
 ipcMain.on('getwallets', function (event, data) {
-    // var list = wallet.getWalletFileList();
-    // //get wallet list
-    // event.sender.send('replygetwallets', list);
+    var list = wallet.getWalletFileList();
+    //get wallet list
+    event.sender.send('replygetwallets', list);
 })
 
 //update wallet
@@ -26,7 +26,7 @@ ipcMain.on('changewallet', function (event, data) {
         // }else{
         // }
         // console.log('result:',wallet.validate());
-        event.sender.send('replychangewallet', wallet.validate());
+        event.sender.send('replychangewallet', [wallet.validate(),wallet.filename]);
     }
 })
 

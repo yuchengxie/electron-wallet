@@ -47,10 +47,12 @@ window.onload = function () {
     }
 
     ipcRenderer.on('replychangewallet', function (event, data) {
-        if (data == 'true') {
-            alert('success');
-        } else {
-            alert('password error');
+        if(data && data.length==2){
+            if (data[0] == true) {
+                alert('change success to wallet:'+data[1]);
+            } else {
+                alert('password error');
+            }
         }
     })
 

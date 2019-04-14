@@ -15,3 +15,5 @@ const Wallet=require('./wallet')
 
 
 var wallet = new Wallet();
+wallet=wallet.init();
+console.log(wallet);

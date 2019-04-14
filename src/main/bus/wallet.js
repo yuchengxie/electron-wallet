@@ -17,7 +17,7 @@ var default_fullpath = path.join(__dirname, '../../../data/default.cfg');
 function Wallet(password, filename) {//Wallet
     this.password = password;
     this.filename = filename;
-    // this.init = init;
+    this.init = init;
     this.create = create;
     this.save = save;
     this.sign = sign;
@@ -25,28 +25,29 @@ function Wallet(password, filename) {//Wallet
     this.sign = sign;
     this.verify = verify;
     this.getBIP32 = getBIP32;
-    this.initdirs = initdirs;
+    // this.initdirs = initdirs;
     this.validate = validate;
     this.getAddrFromWallet = getAddrFromWallet;
     this.getWalletFileList = getWalletFileList;
-    // init();
 }
-
 function init() {
     // initdirs();
-    // if (initdirs) {
-    fs.exists(default_fullpath, function (exists) {
-        if (exists) {
-            console.log('yes');
-            var data = readFromFile('default.cfg', true);
-            return new Wallet(data['password', default_fullpath]);
+    mkdirsSync(fp);
+    var a = fs.existsSync(default_fullpath);
+    console.log('isExist:', a);
+    if (fs.existsSync(default_fullpath)) {
+        console.log('default.cfg存在');
+        var data = readFromFile('default.cfg', true);
+        if (data && data['password']) {
+            return new Wallet(data['password'], default_fullpath);
         } else {
-            console.log('no');
+            console.log('wallet file not exist,need create new');
             return new Wallet();
         }
-    })
-    // }
-
+    } else {
+        console.log('wallet file not exist,need create new');
+        return new Wallet();
+    }
 }
 
 function create(str) {// create loacl wallet *.cfg file 
@@ -151,7 +152,12 @@ function readFromFile(filename, isDefault) {//read file
     }
     console.log('readFromFile filename:', filename);
     const data = fs.readFileSync(dir + filename, "utf-8");//sync read
-    return JSON.parse(data);
+    if (data.length != 0) {
+        return JSON.parse(data);
+    } else {
+        // throw(filename+' data err');
+        return null;
+    }
 }
 
 function sign(BIP32, buf) {
@@ -192,16 +198,16 @@ function saveToFile(encrypt, filename, password) {//save file format *.cfg
 }
 
 //递归创建目录 同步方法  
-function initdirs() {
-    if (fs.existsSync(fp)) {
-        return true;
-    } else {
-        if (mkdirsSync(path.dirname(fp))) {
-            fs.mkdirSync(fp);
-            return false;
-        }
-    }
-}
+// function initdirs() {
+//     if (fs.existsSync(fp)) {
+//         return true;
+//     } else {
+//         if (mkdirsSync(path.dirname(fp))) {
+//             fs.mkdirSync(fp);
+//             return false;
+//         }
+//     }
+// }
 
 //递归创建目录 同步方法  
 function mkdirsSync(dirname) {

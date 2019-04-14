@@ -1,24 +1,96 @@
 const ipcRenderer = require('electron').ipcRenderer;
 
 window.onload = function () {
+    //init default wallet
+    ipcRenderer.send('getwallets');
+
+    var filename;
+    var password;
+
+    var input_change_pwd = getElement('frame_wallet_change', 'input_change_pwd');
+    var b_change = getElement('frame_wallet_change', 'b_change');
+    var wallet_name = getElement('frame_wallet_change', 'wallet_name');
+    var btn_wallet_change = getElement('frame_wallet_change', 'btn_wallet_change');
+    
+    ipcRenderer.on('replygetwallets', function (event, data) {
+        var childs = b_change.childNodes;
+        for (var i = childs.length - 1; i >= 0; i--) {
+            b_change.removeChild(childs[i]);
+        }
+        for (var i = 0; i < data.length; i++) {
+            var filename = data[i].split('.')[0];
+            var ele = document.createElement('a');
+            ele.className = 'dropdown-item';
+            ele.innerText = filename;
+            ele.onclick = changewallet.bind(this);
+            b_change.appendChild(ele);
+            var divider = document.createElement('div');
+            divider.className = 'dropdown-divider';
+            if (i < data.length - 1) {
+                b_change.appendChild(divider);
+            }
+        }
+    });
+
+    btn_wallet_change.onclick = function () {
+        // var filename = wallet_name.value;
+        password = input_change_pwd.value;
+        if (isEmpty(filename)) {
+            alert('filename can not be empty');
+            return;
+        }
+        if (isEmpty(password)) {
+            alert('password can not be empty');
+            return;
+        }
+        ipcRenderer.send('changewallet', [filename, password]);
+    }
+
+    ipcRenderer.on('replychangewallet', function (event, data) {
+        if (data == 'true') {
+            alert('success');
+        } else {
+            alert('password error');
+        }
+    })
+
+    function changewallet(e) {
+        //输入钱包设置密码
+        filename = e.target.innerText;
+        wallet_name.innerText = filename;
+    }
+
+
     //wallet_create
     var btn_wallet_create = getElement('frame_wallet_create', 'btn_wallet_create');
     var phone = getElement('frame_wallet_create', 'phone');
     var pwd = getElement('frame_wallet_create', 'pwd');
+    var create_wallet_name = getElement('frame_wallet_create', 'create_wallet_name');
     var addr_create = getElement('frame_wallet_create', 'addr_create');
     btn_wallet_create.onclick = function () {
         var v_phone = phone.value;
         var v_pwd = pwd.value;
-        console.log(v_phone);
-        console.log(v_pwd);
-        console.log(v_phone + v_pwd);
-        ipcRenderer.send('create', [v_phone + v_pwd, v_pwd]);
+        v_wallet_name = create_wallet_name.value;
+        if (isEmpty(v_pwd)) {
+            alert('password can not be empty');
+            return;
+        };
+        if (isEmpty(v_wallet_name)) {
+            alert('filename can not be empty');
+            return;
+        };
+        var v_wallet_name = v_wallet_name + '.cfg';
+        console.log("v_walletfilename:", v_wallet_name);
+        ipcRenderer.send('create', [v_phone + v_pwd, v_pwd, v_wallet_name]);
     }
 
     ipcRenderer.on('replycreate', function (event, data) {
         if (data) {
             console.log('replycreate:', data, data.length);
-            addr_create.innerText = data;
+            addr_create.innerText = data[1];
+            alert(data[0] + '创建成功');
+            //update wallets display
+            ipcRenderer.send('getwallets');
         }
     })
 
@@ -27,16 +99,30 @@ window.onload = function () {
     var addr_import = getElement('frame_wallet_import', 'addr_import');
     var p_import_pwd = getElement('frame_wallet_import', 'p_import_pwd');
     var import_prvk = getElement('frame_wallet_import', 'import_prvk');
+    var import_wallet_name = getElement('frame_wallet_import', 'import_wallet_name');
     btn_wallet_import.onclick = function () {
         var pvk = import_prvk.value;
         var pwd = p_import_pwd.value;
-        ipcRenderer.send('save', [pvk, pwd]);
+        var wallet_name = import_wallet_name.value + '.cfg';
+        if (isEmpty(pvk)) {
+            alert('pvk can not be empty');
+            return;
+        };
+        if (isEmpty(pwd)) {
+            alert('password can not be empty');
+            return;
+        };
+        if (isEmpty(wallet_name)) {
+            alert('filename can not be empty');
+            return;
+        };
+        ipcRenderer.send('save', [pvk, pwd, wallet_name]);
     }
 
     ipcRenderer.on('replysave', function (event, data) {
         if (data) {
-            console.log('replysave:', data, data.length);
-            addr_import.innerText = data;
+            addr_import.innerText = data[0];
+            alert(data[1] + '钱包导入成功');
         }
     })
 
@@ -122,19 +208,19 @@ window.onload = function () {
 
     //交易
     var addrfrom = getElement('frame_transfer', 'addrfrom');
-    console.log('addrfrom:',addrfrom);
     var addrto = getElement('frame_transfer', 'addrto');
     var t_value = getElement('frame_transfer', 't_value');
     var btn_txns = getElement('frame_transfer', 'btn_txns');
     // var btn_utxo = getElement('frame_utxo', 'btn_utxo');
-    console.log('btn_txns:',btn_txns);
+    console.log('btn_txns:', btn_txns);
     btn_txns.onclick = function () {
-        var from=addrfrom.value;
-        var to=addrto.value;
-        var value=t_value.value;
+        var from = addrfrom.value;
+        var to = addrto.value;
+        var value = t_value.value;
         console.log('btn_txns');
-        ipcRenderer.send('transfer',[from,to,value]);
+        ipcRenderer.send('transfer', [from, to, value]);
     }
+
 }
 
 
@@ -144,5 +230,13 @@ window.onload = function () {
 function getElement(frameId, eleId) {
     var ele = document.getElementById(frameId).contentWindow.document.getElementById(eleId);
     return ele;
+}
+
+function isEmpty(obj) {
+    if (typeof obj == "undefined" || obj == null || obj == "") {
+        return true;
+    } else {
+        return false;
+    }
 }
 

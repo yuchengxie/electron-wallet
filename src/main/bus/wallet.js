@@ -12,20 +12,41 @@ const bufferhelp = require('./bufferhelp');
 
 var default_fp = path.join(__dirname, '../../../data/');
 var fp = path.join(__dirname, '../../../data/account/');
+var default_fullpath = path.join(__dirname, '../../../data/default.cfg');
 
 function Wallet(password, filename) {//Wallet
-
-    this.password = password == undefined ? '12345678' : password;
-    this.filename = filename == undefined ? 'addr1.cfg' : filename;
-
+    this.password = password;
+    this.filename = filename;
+    // this.init = init;
     this.create = create;
     this.save = save;
     this.sign = sign;
     this.genAddr = genAddr;
     this.sign = sign;
     this.verify = verify;
-    this.getBIP32=getBIP32;
+    this.getBIP32 = getBIP32;
+    this.initdirs = initdirs;
+    this.validate = validate;
     this.getAddrFromWallet = getAddrFromWallet;
+    this.getWalletFileList = getWalletFileList;
+    // init();
+}
+
+function init() {
+    // initdirs();
+    // if (initdirs) {
+    fs.exists(default_fullpath, function (exists) {
+        if (exists) {
+            console.log('yes');
+            var data = readFromFile('default.cfg', true);
+            return new Wallet(data['password', default_fullpath]);
+        } else {
+            console.log('no');
+            return new Wallet();
+        }
+    })
+    // }
+
 }
 
 function create(str) {// create loacl wallet *.cfg file 
@@ -37,7 +58,7 @@ function create(str) {// create loacl wallet *.cfg file
     var len = (wif.length).toString(16);
     wif = len + wif;
     var encrypt = AES.Encrypt(wif, this.password);
-    saveToFile(encrypt, this.filename);//save to file
+    saveToFile(encrypt, this.filename, this.password);//save to file
     var address = genAddr(BIP32);//generate address
     return address;
 }
@@ -51,7 +72,7 @@ function save(prvKeyStr) {//import prvkey to local *.fgfile
     var len = (wif.length).toString(16);
     wif = len + wif;
     var encrypt = AES.Encrypt(wif, this.password);
-    saveToFile(encrypt, this.filename);//save to file
+    saveToFile(encrypt, this.filename, this.password);//save to file
     var address = genAddr(BIP32);//generate address
     return address;
 }
@@ -81,10 +102,10 @@ function genAddr(BIP32) {// generate address
 }
 
 function getBIP32() {
-    var filename=this.filename;
-    var password=this.password;
-    console.log('filename:',filename,password);
-    if (password == undefined || filename==undefined) throw 'wallet error';
+    var filename = this.filename;
+    var password = this.password;
+    console.log('filename:', filename, password);
+    if (password == undefined || filename == undefined) throw 'wallet error';
     var data = readFromFile(filename);
     var encrypt_prvkey = data['prvkey'];
     var s = AES.Decrypt(encrypt_prvkey, password);
@@ -95,10 +116,10 @@ function getBIP32() {
 }
 
 function getAddrFromWallet() {
-    var filename=this.filename;
-    var password=this.password;
-    console.log('filename:',filename,password);
-    if (password == undefined || filename==undefined) throw 'wallet error';
+    var filename = this.filename;
+    var password = this.password;
+    console.log('filename:', filename, password);
+    if (password == undefined || filename == undefined) throw 'wallet error';
     var data = readFromFile(filename);
     var encrypt_prvkey = data['prvkey'];
     var s = AES.Decrypt(encrypt_prvkey, password);
@@ -109,14 +130,33 @@ function getAddrFromWallet() {
     return addr;
 }
 
-function readFromFile(filename) {//read file
-    const data = fs.readFileSync(fp + filename + '.cfg', "utf-8");//sync read
+function getWalletFileList() {
+    return readDirSync(fp);
+}
+
+function validate() {
+    var data = readFromFile(this.filename);
+    if (data['password'] == this.password) {
+        return true;
+    }
+    return false;
+}
+
+function readFromFile(filename, isDefault) {//read file
+    var dir = '';
+    if (isDefault != undefined && isDefault == true) {
+        dir = default_fp;
+    } else {
+        dir = fp;
+    }
+    console.log('readFromFile filename:', filename);
+    const data = fs.readFileSync(dir + filename, "utf-8");//sync read
     return JSON.parse(data);
 }
 
-function sign(BIP32,buf){
-    var hash=bitcoinjs.crypto.sha256(buf);
-    var s=BIP32.sign(hash);
+function sign(BIP32, buf) {
+    var hash = bitcoinjs.crypto.sha256(buf);
+    var s = BIP32.sign(hash);
     return s;
 }
 
@@ -124,7 +164,7 @@ function verify() {
 
 }
 
-function saveToFile(encrypt, filename) {//save file format *.cfg
+function saveToFile(encrypt, filename, password) {//save file format *.cfg
     var data = {
         'encrypted': true,
         "type": "default",
@@ -132,10 +172,12 @@ function saveToFile(encrypt, filename) {//save file format *.cfg
         "coin_type": "00",
         "testnet": false,
         "prvkey": encrypt,
-        "pubkey": null
+        "pubkey": null,
+        "password": password,
     }
     mkdirs(fp, function () {
         data = JSON.stringify(data);
+
         fs.writeFile(fp + filename, data, (err) => {
             if (err) {
                 throw Error('write file err');
@@ -149,6 +191,31 @@ function saveToFile(encrypt, filename) {//save file format *.cfg
     })
 }
 
+//递归创建目录 同步方法  
+function initdirs() {
+    if (fs.existsSync(fp)) {
+        return true;
+    } else {
+        if (mkdirsSync(path.dirname(fp))) {
+            fs.mkdirSync(fp);
+            return false;
+        }
+    }
+}
+
+//递归创建目录 同步方法  
+function mkdirsSync(dirname) {
+    console.log(dirname);
+    if (fs.existsSync(dirname)) {
+        return true;
+    } else {
+        if (mkdirsSync(path.dirname(dirname))) {
+            fs.mkdirSync(dirname);
+            return false;
+        }
+    }
+}
+
 function mkdirs(dirname, callback) {//create dirs
     fs.exists(dirname, function (exists) {
         if (exists) {
@@ -159,6 +226,19 @@ function mkdirs(dirname, callback) {//create dirs
             });
         }
     });
+}
+
+//遍历文件夹
+function readDirSync(filepath) {
+    var files = [];
+    var pa = fs.readdirSync(filepath);
+    pa.forEach(function (ele, index) {
+        var info = fs.statSync(filepath + ele);
+        if (info.isFile) {
+            files.push(ele);
+        }
+    })
+    return files;
 }
 
 module.exports = Wallet;

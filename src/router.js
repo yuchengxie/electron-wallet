@@ -3,12 +3,13 @@ const R = {
     Wallet_Create: 'wallet_create',
     Wallet_Import: 'wallet_import',
     Wallet_Info: 'wallet_info',
+    Wallet_Change: 'wallet_change',
     Block: 'block',
     UTXO: 'utxo',
     Transfer:'transfer',
 }
 
-const Index=R.Transfer;
+const Index=R.Wallet_Change;
 
 var navhome = document.getElementById('nav_home');
 var navwallet = document.getElementById('nav_wallet_create');
@@ -26,7 +27,6 @@ function tab(e) {
     }else{
         throw Error('url error');
     }
-    console.log('url:',url);
     sessionStorage.setItem('currentUrl',url);
     display(url);
 }

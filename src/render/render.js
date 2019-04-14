@@ -1,40 +1,57 @@
 const ipcRenderer = require('electron').ipcRenderer;
 
+var filename;
+var password;
+
 window.onload = function () {
     //init default wallet
     ipcRenderer.send('getwallets');
-
-    var filename;
-    var password;
 
     var input_change_pwd = getElement('frame_wallet_change', 'input_change_pwd');
     var b_change = getElement('frame_wallet_change', 'b_change');
     var wallet_name = getElement('frame_wallet_change', 'wallet_name');
     var btn_wallet_change = getElement('frame_wallet_change', 'btn_wallet_change');
-    
+
+    // var childs = b_change.children;
+    // console.log('hahha childs:',childs,childs.length);
+    // console.log('childs[0] value:',childs[0]);
+    // if (childs.length>=1){
+    //     // console.log('hahha childs:',childs,childs.length);
+    //     console.log('childs[0] value:',childs[0].value);
+    // }
+   
+
     ipcRenderer.on('replygetwallets', function (event, data) {
-        var childs = b_change.childNodes;
+        var childs = b_change.children;
+        console.log('childs:',childs,childs.length);
         for (var i = childs.length - 1; i >= 0; i--) {
             b_change.removeChild(childs[i]);
         }
         for (var i = 0; i < data.length; i++) {
-            var filename = data[i].split('.')[0];
-            var ele = document.createElement('a');
-            ele.className = 'dropdown-item';
-            ele.innerText = filename;
-            ele.onclick = changewallet.bind(this);
-            b_change.appendChild(ele);
-            var divider = document.createElement('div');
-            divider.className = 'dropdown-divider';
-            if (i < data.length - 1) {
-                b_change.appendChild(divider);
+            var name = data[i].split('.')[0];
+            var ele = document.createElement('option');
+            ele.innerText = name;
+            //default
+            if(i==0){
+                filename=ele.innerText;
+                console.log('>> filename',filename);
             }
+            b_change.appendChild(ele);
         }
     });
+
+    b_change.onchange = function (e) {
+        //输入钱包设置密码
+        filename = e.target.value;
+
+        console.log('changewallet e:', filename);
+        // wallet_name.innerText = filename;
+    }
 
     btn_wallet_change.onclick = function () {
         // var filename = wallet_name.value;
         password = input_change_pwd.value;
+        console.log('filename:', filename)
         if (isEmpty(filename)) {
             alert('filename can not be empty');
             return;
@@ -47,9 +64,9 @@ window.onload = function () {
     }
 
     ipcRenderer.on('replychangewallet', function (event, data) {
-        if(data && data.length==2){
+        if (data && data.length == 2) {
             if (data[0] == true) {
-                alert('change success to wallet:'+data[1]);
+                alert('change success to wallet:' + data[1]);
             } else {
                 alert('password error');
             }
@@ -57,9 +74,13 @@ window.onload = function () {
     })
 
     function changewallet(e) {
+        // e.prentDefault();
+        // alert(e);
         //输入钱包设置密码
-        filename = e.target.innerText;
-        wallet_name.innerText = filename;
+        //filename = e.target.innerText;
+
+        //console.log('changewallet e:',filename);
+        // wallet_name.innerText = filename;
     }
 
 

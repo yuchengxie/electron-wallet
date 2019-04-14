@@ -26,13 +26,11 @@ function Wallet(password, filename) {//Wallet
     this.sign = sign;
     this.verify = verify;
     this.getBIP32 = getBIP32;
-    // this.initdirs = initdirs;
     this.validate = validate;
     this.getAddrFromWallet = getAddrFromWallet;
     this.getWalletFileList = getWalletFileList;
 }
 function init() {
-    // initdirs();
     mkdirsSync(fp);
     var a = fs.existsSync(default_fullpath);
     console.log('isExist:', a);

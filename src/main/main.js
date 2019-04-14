@@ -17,7 +17,6 @@ ipcMain.on('getwallets', function (event, data) {
 //update wallet
 ipcMain.on('changewallet', function (event, data) {
     if (data.length == 2) {
-        console.log('changewallet:', data);
         var currentfile=data[0]+'.cfg';
         var currentpassword=data[1];
         var w=new Wallet(currentpassword,currentfile);
@@ -49,8 +48,6 @@ ipcMain.on('save', function (event, data) {
 ipcMain.on('create', function (event, data) {
     console.log(data);
     if (data.length == 3) {
-        console.log('pwd,filename:', data[1], data[2]);
-        // wallet = new Wallet(data[1], data[2]);
         wallet.password = data[1];
         wallet.filename = data[2];
         var addr = wallet.create(data[0]);

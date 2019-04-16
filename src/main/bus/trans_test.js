@@ -19,6 +19,7 @@ var makesheet;
 var orgsheetMsg;
 var _wait_submit = [];
 var SHEET_CACHE_SIZE = 16;
+var wallet;
 
 function verify(addr) {
     if (addr.length <= 32) {
@@ -100,7 +101,7 @@ function prepare_txn1_(pay_to, ext_in, scan_count, min_utxo, max_utxo, sort_flag
 
     var pay_to = [];
     var pay_to1 = new PayTo()
-    pay_to1.value = 100000000;
+    pay_to1.value = 1*Math.pow(10,8);
     pay_to1.address = '1119AwBxBnRX3SdNM67EwPGb9CmSTUcP3qk7hhNVUuSGdXJGLjEnis';
     pay_to.push(pay_to1);
 
@@ -119,6 +120,7 @@ function prepare_txn1_(pay_to, ext_in, scan_count, min_utxo, max_utxo, sort_flag
     return submit_txn_(makesheet, true);
 }
 
+//将makesheet对象转二进制流
 function submit_txn_(msg, submit) {
     //0-4
     const magic = Buffer.from([0xf9, 0x6e, 0x62, 0x74]);
@@ -131,8 +133,9 @@ function submit_txn_(msg, submit) {
     // var m = new bindMsg(gFormat.makesheet);
     var buf = new Buffer(0);
     var _msg = new bindMsg(gFormat.makesheet);
-    var payload = _msg.binary(msg, buf);
-    console.log('payload:', payload, payload.length);
+    // var payload = _msg.binary(msg, buf);//165 bytes
+    var payload=bufferhelp.hexStrToBuffer('00000100000001000000000000000036313131384d69355878716d7154427037546e50516431486b39585961674a517044635a7536456947453156625848417739695a4750560100e1f50500000000363131313941774278426e52583353644e4d3637457750476239436d535455635033716b3768684e565575534764584a474c6a456e697300000000000000000000000000000000000000000000010000000000000000');
+    console.log('makesheet to payload buf\n:', payload, bufferhelp.bufToStr(payload), payload.length);
 
     //16-20 payload length
     var len_buf = new Buffer(4);
@@ -143,13 +146,15 @@ function submit_txn_(msg, submit) {
 
     var b = Buffer.concat([magic, command, len_buf, checksum, payload]);
 
+
+
     return b;
 }
 
 var pay_to = '', from_uocks = '';
 
-var buf = query_sheet(pay_to, from_uocks)
-console.log('发送buf:', buf, buf.length);
+var buf = query_sheet(pay_to, from_uocks);
+console.log('>>> 发送数据1:', buf, bufferhelp.bufToStr(buf), bufferhelp.bufToStr(buf).length);
 var URL = 'http://raw0.nb-chain.net/txn/sheets/sheet';
 dhttp({
     method: 'POST',
@@ -158,16 +163,30 @@ dhttp({
 }, function (err, res) {
     if (err) throw err;
     var resbuf = res.body;
-    console.log('resbuf:', resbuf, resbuf.length);
+    var s = bufferhelp.bufToStr(resbuf);
+    console.log('>>> 接收数据1:', resbuf, s, s.length);
     var payload = message.g_parse(resbuf);
     console.log('payload:', payload, payload.length);
     var msg = new bindMsg(gFormat.orgsheet);
+
     orgsheetMsg = msg.parse(payload, 0)[1];
     console.log('>>>>>> orgsheetMsg:', orgsheetMsg);
+    // var pubkey=wallet.getBIP32().publicKey;
 
+    wallet = new Wallet('xieyc', 'addr1');
+    var data = wallet.getWalletData();
+    // var pubkey = data.pubkey;
+    // var coin_type = data.coin_type;
+    // var coin_hash = pubkey + coin_type;
+
+    // console.log('>>>>>> pubkey:', pubkey, pubkey.length);
+    // console.log('>>>>>> coin_type:', coin_type, coin_type.length);
+    // console.log('>>>>>> coin_hash:', coin_hash, coin_hash.length);
+
+    //check pay_to balance
 
     var d = {};
-    var payto = makesheet.pay_to
+    var payto = makesheet.pay_to;
     for (var i = 0; i < payto.length; i++) {
         var p = payto[i];
         if (p.value != 0 || p.address.slice(0, 1) != 0x6a) {
@@ -177,8 +196,10 @@ dhttp({
         }
     }
 
+    console.log('d:', d);
 
-    var t = orgsheetMsg.pks_out;
+
+    // var t = orgsheetMsg.pks_outs
 
     var pks_out0 = orgsheetMsg.pks_out[0].items;
     var pks_num = pks_out0.length;
@@ -190,26 +211,22 @@ dhttp({
         // # sign every inputs
         if (idx < pks_num) {
             var hash_type = 1;
-            var payload = make_payload(pks_out0[idx], orgsheetMsg.version, orgsheetMsg.tx_in, orgsheetMsg.tx_out, 0, idx, hash_type)  //lock_time=0
-            // //签名
-            console.log('payload:', payload, payload.length);
-            // var wallet = new Wallet('123456', 'addr1');
-            var wallet=new Wallet('xieyc','default.cfg');
-            console.log('wallet:', wallet);
-            var BIP32 = wallet.getBIP32();
-            console.log('>>> bip32:', BIP32);
-            var sig = Buffer.concat([wallet.sign(BIP32, payload), CHR(hash_type)]);
+            var payload = make_payload(pks_out0.slice(idx), orgsheetMsg.version, orgsheetMsg.tx_in, orgsheetMsg.tx_out, 0, idx, hash_type)  //lock_time=0
+            //签名
+            console.log('>>> ready sign payload:', payload,bufferhelp.bufToStr(payload), payload.length);
+            wallet=new Wallet('xieyc','default.cfg');
+            var sig=Buffer.concat([wallet.sign(payload),CHR(hash_type)]);
             console.log('sig:', sig, sig.length);
             var pub_key = BIP32.publicKey;
-            console.log('pub_key:', pub_key, pub_key.length);
-            var sig_script = Buffer.concat([CHR(sig), sig, CHR(pub_key), pub_key]);
-            console.log('sig_script:', sig_script, sig_script.length);
-            var txin = new TxnIn();
-            tx_in.prev_output, sig_script, tx_in.sequence
-            txin.prev_output = tx_in.prev_output;
-            txin.sig_script = tx_in.sig_script;
-            txin.sequence = tx_in.sequence;
-            tx_ins2.push(txin);
+            // console.log('pub_key:', pub_key, pub_key.length);
+            // var sig_script = Buffer.concat([CHR(sig), sig, CHR(pub_key), pub_key]);
+            // console.log('sig_script:', sig_script, sig_script.length);
+            // var txin = new TxnIn();
+            // tx_in.prev_output, sig_script, tx_in.sequence
+            // txin.prev_output = tx_in.prev_output;
+            // txin.sig_script = tx_in.sig_script;
+            // txin.sequence = tx_in.sequence;
+            // tx_ins2.push(txin);
         }
     }
     console.log('tx_ins2:', tx_ins2, tx_ins2.length);
@@ -237,9 +254,11 @@ dhttp({
     // while (_wait_submit.length > self.SHEET_CACHE_SIZE){
     //     _wait_submit
     // }
-    if (submit){
-        unsign_num = len(msg2.tx_in) - pks_num
-    }
+
+
+    // if (submit) {
+    //     unsign_num = len(msg2.tx_in) - pks_num
+    // }
 })
 
 function CHR(buf) {
@@ -260,8 +279,11 @@ function make_payload(subscript, txns_ver, txns_in, txns_out, lock_time, input_i
             if (index == input_index) {
                 script = subscript;
             }
+            console.log('>>> script:', script, script.length);
+
             tx_in.sig_script = script;
             tx_ins.push(tx_in);
+
         }
         tx_outs = txns_out;
     }
@@ -277,12 +299,12 @@ function make_payload(subscript, txns_ver, txns_in, txns_out, lock_time, input_i
     tx_copy.tx_out = tx_outs;
     tx_copy.lock_time = lock_time;
 
+    console.log('>>> tx_copy msg:', tx_copy);
     // var payload = parse(tx_copy);
     var msg = new bindMsg(gFormat.flextxn);
     var payload = msg.binary(tx_copy, new Buffer(0));
-    // console.log('payload:', payload, payload.length);
+    console.log('tx_copy payload:', payload, payload.length);
     return payload;
-
 }
 
 function decode_check(v) {

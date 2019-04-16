@@ -80,6 +80,18 @@ function strToBuffer(str,n){
     return b1;
 }
 
+function hexStrToBuffer(hex) {
+    if (hex.length % 2 != 0) {
+        hex = '0' + hex;
+    }
+    var typedArray = new Uint8Array(hex.match(/[\da-f]{2}/gi).map(function (h) {
+        return parseInt(h, 16)
+    }))
+    var buffer = typedArray.buffer
+    buffer = Buffer.from(buffer);
+    return buffer;
+}
+
 module.exports={
-    bufToNumer,numToBuf,toBufEndian,bufToStr,hexToBuffer,strToBuffer
+    bufToNumer,numToBuf,toBufEndian,bufToStr,hexToBuffer,strToBuffer,hexStrToBuffer
 }

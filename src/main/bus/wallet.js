@@ -15,6 +15,9 @@ var fp = path.join(__dirname, '../../../data/account/');
 var default_fullpath = path.join(__dirname, '../../../data/default.cfg');
 var default_file = 'default.cfg';
 
+var pubkey;
+var address;
+
 function Wallet(password, filename) {//Wallet
     this.password = password;
     this.filename = filename;
@@ -26,10 +29,26 @@ function Wallet(password, filename) {//Wallet
     this.sign = sign;
     this.verify = verify;
     this.getBIP32 = getBIP32;
+    this.getWalletData = getWalletData;
     this.validate = validate;
     this.getAddrFromWallet = getAddrFromWallet;
     this.getWalletFileList = getWalletFileList;
+    this.BIP32 = this.getBIP32();
+    this.cfgdata=readFromFile(this.filename);
 }
+
+function WalletData() {
+    this.encrypted = true;
+    this.type = 'default';
+    this.vcn = 0;
+    this.coin_type = '0';
+    this.testnet = false;
+    this.prvkey = '';
+    this.pubkey = '';
+    this.password = '';
+    this.address = '';
+}
+
 function init() {
     mkdirsSync(fp);
     var a = fs.existsSync(default_fullpath);
@@ -54,12 +73,13 @@ function create(str) {// create loacl wallet *.cfg file
     if (str.length < 16 || str.length > 32)
         throw new Error('phone+pwd length must be region in 16-32');
     var BIP32 = bip32.fromSeed(Buffer.from(str));
+    pubkey = bufferhelp.bufToStr(BIP32.publicKey);
     var wif = BIP32.toWIF();
     var len = (wif.length).toString(16);
     wif = len + wif;
     var encrypt = AES.Encrypt(wif, this.password);
+    address = genAddr(BIP32);//generate address
     saveToFile(encrypt, this.filename, this.password);//save to file
-    var address = genAddr(BIP32);//generate address
     return address;
 }
 
@@ -68,12 +88,13 @@ function save(prvKeyStr) {//import prvkey to local *.fgfile
     if (prvKeyStr.length != 64)
         throw Error('length must be 64');
     var BIP32 = bip32.fromPrivateKey(bufferhelp.hexToBuffer(prvKeyStr), new Buffer(32));
+    pubkey = bufferhelp.bufToStr(BIP32.publicKey);
     var wif = BIP32.toWIF();
     var len = (wif.length).toString(16);
     wif = len + wif;
     var encrypt = AES.Encrypt(wif, this.password);
+    address = genAddr(BIP32);//generate address
     saveToFile(encrypt, this.filename, this.password);//save to file
-    var address = genAddr(BIP32);//generate address
     return address;
 }
 
@@ -115,6 +136,20 @@ function getBIP32() {
     return BIP32;
 }
 
+function getWalletData() {
+    var wd = new WalletData();
+    var data = readFromFile(this.filename);
+    wd.coin_type = data['coin_type'];
+    wd.encrypted = data['encrypted'];
+    wd.password = data['password'];
+    wd.prvkey = data['prvkey'];
+    wd.pubkey = data['pubkey'];
+    wd.type = data['type'];
+    wd.vcn = data['vcn'];
+    wd.testnet = data['testnet'];
+    return wd;
+}
+
 function getAddrFromWallet() {
     var filename = this.filename;
     var password = this.password;
@@ -146,13 +181,13 @@ function readFromFile(filename, isDefault) {//read file
     console.log('isDefault:', isDefault);
     console.log('filename:', filename);
     var dir = '';
-    if (isDefault == true || filename==default_file) {
+    if (isDefault == true || filename == default_file) {
         dir = default_fp;
     } else {
         dir = fp;
     }
-    if(!filename.includes('.cfg')){
-        filename=filename+'.cfg';
+    if (!filename.includes('.cfg')) {
+        filename = filename + '.cfg';
     }
     console.log('dir:', dir);
     console.log('readFromFile filename:', filename);
@@ -166,10 +201,15 @@ function readFromFile(filename, isDefault) {//read file
     }
 }
 
-function sign(BIP32, buf) {
+function sign(buf) {
     var hash = bitcoinjs.crypto.sha256(buf);
-    var s = BIP32.sign(hash);
-    return s;
+    var wif = this.BIP32.toWIF();
+    var keyPair = bitcoinjs.ECPair.fromWIF(wif);//sign with prvkey
+    var signature = keyPair.sign(hash).toDER(); // ECSignature对象
+    console.log(signature.toString('hex'), signature.toString('hex').length);
+    //打印公钥以便验证签名:
+    console.log(keyPair.getPublicKeyBuffer().toString('hex'));
+    return signature;
 }
 
 function verify() {
@@ -184,8 +224,9 @@ function saveToFile(encrypt, filename, password) {//save file format *.cfg
         "coin_type": "00",
         "testnet": false,
         "prvkey": encrypt,
-        "pubkey": null,
+        "pubkey": pubkey == undefined ? '' : pubkey,
         "password": password,
+        "address": address == undefined ? '' : address,
     }
     mkdirs(fp, function () {
         data = JSON.stringify(data);

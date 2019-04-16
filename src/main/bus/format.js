@@ -208,7 +208,6 @@ var varStrLists = {
     }
 }
 
-
 var varStrList = {
     getFmt: function () {
         return [

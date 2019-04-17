@@ -202,9 +202,8 @@ function submit_txn_(msg, submit) {
     var checksum = toBuffer(sha256(toBuffer(sha256(payload)))).slice(0, 4);
 
     var b = Buffer.concat([magic, command, len_buf, checksum, payload]);
-
+    
     // ttt('node', b);
-
     return b;
 }
 

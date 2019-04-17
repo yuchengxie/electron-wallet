@@ -254,6 +254,15 @@ var transaction = {
     }
 }
 
+var udpconfirm={
+    getFmt:function(){
+        return [
+            ['hash', byte(32)],
+            ['lock_time', 'q']
+        ]
+    }
+}
+
 var gFormat = {
     // 'I': null,
     'S': null,
@@ -283,6 +292,8 @@ var gFormat = {
     'flextxn': flextxn,
 
     'transaction': transaction,
+
+    'udpconfirm':udpconfirm,
 }
 
 module.exports = gFormat;

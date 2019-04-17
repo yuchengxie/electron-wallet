@@ -122,6 +122,7 @@ function genAddr(BIP32) {// generate address
     return addr;
 }
 
+
 function getBIP32() {
     var filename = this.filename;
     var password = this.password;

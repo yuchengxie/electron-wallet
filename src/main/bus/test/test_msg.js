@@ -1,13 +1,13 @@
-let http = require('http');
-var dhttp = require('dhttp');
-var message = require('./message');
-var gFormat = require('./format');
-var wallet = require('./wallet');
-const bufferhelp = require('./bufferhelp');
-const sha256 = require('js-sha256');
-const bs58 = require('bs58')
+// let http = require('http');
+// var dhttp = require('dhttp');
+// var message = require('./message');
+// var gFormat = require('./format');
+// var wallet = require('./wallet');
+// const bufferhelp = require('./bufferhelp');
+// const sha256 = require('js-sha256');
+// const bs58 = require('bs58')
 
-var bindMsg = message.bindMsg;
+// var bindMsg = message.bindMsg;
 
 //binary测试
 // 00 00 00 00 5f b8 ac 5c 36 31 31 31 38 4d 69 35 58 78 71 6d 71 54 42 70 37 54 6e 50 51 64 31 48 6b 
@@ -129,6 +129,13 @@ var bindMsg = message.bindMsg;
 //         console.log('> msg:', msg[1],msg[0]);
 //     });
 // });
+
+var a='123123123';
+var len=a.length;
+var b=a.slice(0,9-1);
+
+console.log(len);
+console.log(b);
 
 
 

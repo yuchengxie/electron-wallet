@@ -39,6 +39,7 @@ function global_binary_func(msg, buf, prot, arrayLen) {
                     buf = Buffer.concat([buf, ret]);
                 }
             }
+            return buf;
         } else {
             fmt = prot;
             for (var i = 0; i < arrayLen; i++) {
@@ -47,9 +48,10 @@ function global_binary_func(msg, buf, prot, arrayLen) {
                 var ret = global_binary_func(m, buf, fmt2);
                 buf = Buffer.concat([buf, ret]);
             }
+            return buf;
         }
 
-        return buf;
+
     }
 
     var fmt;
@@ -67,13 +69,16 @@ function global_binary_func(msg, buf, prot, arrayLen) {
         if (fmt[fmt.length - 1] == ']') {
             if (fmt[fmt.length - 2] == '[' && typeof (arrayLen) == 'string') {//var length arr/str
                 var ft = fmt.slice(0, fmt.length - 2);
+                //str
                 if (arrayLen.split('_')[0].includes('str')) {
                     var ret = global_binary_func(msg, buf, 'V')//ret value map buf
                     buf = Buffer.concat([buf, ret]);
                     if (ft == 'VS') {// var-len-str
-                        ret = global_binary_func(msg, buf, 'S');
-                        buf = Buffer.concat([buf, ret]);
+                        // ret = global_binary_func(msg, buf, 'S');
+                        // buf = Buffer.concat([buf, ret]);
+                        return global_binary_func(msg, buf, 'S');
                     }
+                //arr
                 } else if (arrayLen.split('_')[0].includes('arr')) {
                     var v = arrayLen.split('_')[1];
                     return global_binary_func(v, buf, 'V');
@@ -94,11 +99,11 @@ function global_binary_func(msg, buf, prot, arrayLen) {
         } else {
             //standard
             if (fmt == 'I') {
-                return toBufLE(msg, false, 4);
+                return toBufEndian(msg, false, 4);
             }
             if (fmt == 'V') {
                 // var len = msg.length;
-                return toBuf(msg, false, 1);
+                return toBufEndian(msg, false, 1);
             }
             if (fmt == 'S') {
                 return new Buffer(msg);
@@ -107,7 +112,7 @@ function global_binary_func(msg, buf, prot, arrayLen) {
                 return toBufLE(msg, false, 8);
             }
             if (fmt == 'H') {
-                return toBufLE(msg, false, 2);
+                return toBufEndian(msg, false, 2);
             }
         }
     } else if (isArray(fmt)) {
@@ -115,10 +120,24 @@ function global_binary_func(msg, buf, prot, arrayLen) {
         for (var i = 0, item; item = fmt[i]; i++) {
             var attrName = item[0], attrType = item[1];
             var v = msg[attrName];
-            if (attrName == 'sig_raw') {
+            if (attrName == 'tx_in') {
                 var a = 1;
             }
+            // if (isArray(v)) {
+            //     //需要接收的return
+            //     var ret = global_binary_func.apply(subObj, [v, buf, attrType, 'arr_' + v.length]);//返回[buf];
+            //     buf = Buffer.concat([buf, ret]);
+            // } else if (typeof v == 'string') {
+            //     var ret = global_binary_func.apply(subObj, [v, buf, attrType, 'str_' + v.length]);//返回[buf];
+            //     buf = Buffer.concat([buf, ret]);
+            // } else {
+            //     var ret = global_binary_func.apply(subObj, [v, buf, attrType]);//返回[buf];
+            //     buf = Buffer.concat([buf, ret]);
+            // }
+
+
             if (isArray(v)) {
+                var subObj = new bindMsg(prot);
                 var ret = global_binary_func.apply(subObj, [v, buf, attrType, 'arr_' + v.length]);//返回[buf];
                 buf = Buffer.concat([buf, ret]);
                 var fmt2 = gFormat[attrName];
@@ -288,14 +307,14 @@ function toBuf(num, isHex, len) {
     return b0;
 }
 
-// function toBufEndian(num, isHex, len) {
-//     var b0 = new Buffer(len);
-//     var b1 = numToBuf(num, isHex);
-//     for (var i = 0; i < b1.length; i++) {
-//         b0[i] = b1[i];
-//     }
-//     return b0;
-// }
+function toBufEndian(num, isHex, len) {
+    var b0 = new Buffer(len);
+    var b1 = numToBuf(num, isHex);
+    for (var i = 0; i < b1.length; i++) {
+        b0[i] = b1[i];
+    }
+    return b0;
+}
 
 function toBuffer(hex) {
     var typedArray = new Uint8Array(hex.match(/[\da-f]{2}/gi).map(function (h) {

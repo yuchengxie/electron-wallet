@@ -78,7 +78,7 @@ function global_binary_func(msg, buf, prot, arrayLen) {
                         // buf = Buffer.concat([buf, ret]);
                         return global_binary_func(msg, buf, 'S');
                     }
-                //arr
+                    //arr
                 } else if (arrayLen.split('_')[0].includes('arr')) {
                     var v = arrayLen.split('_')[1];
                     return global_binary_func(v, buf, 'V');
@@ -194,8 +194,8 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
     if (typeof (fmt) === 'string') {
         if (fmt[fmt.length - 1] == ']') {
             if (fmt[fmt.length - 2] == '[') {// 'fmt_name[]' means var-len-array
-
                 var ft = fmt.slice(0, fmt.length - 2);
+
                 var fmt2 = gFormat[fmt.slice(0, fmt.length - 2)];
 
                 if (fmt2 == null) {
@@ -204,6 +204,13 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
                 var ret = global_parse_func(buf, offset, 'V');// ret = [new_offset,result]
                 var subArrayLen = ret[1];
                 offset = ret[0];
+
+                if (ft.includes('List')) {
+                    var ret = global_parse_func(buf, offset, 'V');// ret = [new_offset,result]
+                    var subArrayLen = ret[1];
+                    offset = ret[0];
+                }
+
                 if (ft == 'VS') {// var-len-str
                     return global_parse_func(buf, offset, 'S', 'strlen_' + subArrayLen);
                 } else if (ft == 'VInt') {// var-len-int
@@ -234,6 +241,9 @@ function global_parse_func(buf, offset, prot, arrayLen) {//return [offset,value]
         var subObj = new bindMsg(prot);
         for (var i = 0, item; item = fmt[i]; i++) {
             var attrName = item[0], attrType = item[1];
+            if (attrName == 'found') {
+                var a = 1;
+            }
             var ret = global_parse_func.apply(subObj, [buf, offset, attrType]);
             offset = ret[0];
             subObj[attrName] = ret[1];

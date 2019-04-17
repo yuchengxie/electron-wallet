@@ -28,13 +28,12 @@ function Wallet(password, filename) {//Wallet
     this.genAddr = genAddr;
     this.sign = sign;
     this.verify = verify;
-    this.getBIP32 = getBIP32;
     this.getWalletData = getWalletData;
     this.validate = validate;
     this.getAddrFromWallet = getAddrFromWallet;
     this.getWalletFileList = getWalletFileList;
-    this.BIP32 = this.getBIP32();
-    this.cfgdata=readFromFile(this.filename);
+    this.BIP32 = getBIP32(filename,password);
+    this.cfgdata = readFromFile(filename);
 }
 
 function WalletData() {
@@ -122,10 +121,9 @@ function genAddr(BIP32) {// generate address
     return addr;
 }
 
-
-function getBIP32() {
-    var filename = this.filename;
-    var password = this.password;
+function getBIP32(filename,password) {
+    // var filename = this.filename;
+    // var password = this.password;
     console.log('filename:', filename, password);
     if (password == undefined || filename == undefined) throw 'wallet error';
     var data = readFromFile(filename);

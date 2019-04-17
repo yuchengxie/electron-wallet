@@ -219,7 +219,7 @@ var varStrList = {
 var orgsheet = {
     getFmt: function () {
         return [
-            ['sequence', 'I[]'],
+            ['sequence', 'I'],
             ['pks_out', varStrLists],
             ['last_uocks', 'q[]'],
             ['version', 'I'],

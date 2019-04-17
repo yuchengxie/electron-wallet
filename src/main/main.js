@@ -5,8 +5,8 @@ const message = require('./bus/message')
 const bh = require('./bus/bufferhelp');
 
 //set default wallet
-var wallet = new Wallet();
-wallet = wallet.init();
+var wallet = new Wallet('xieyc','default.cfg');
+// wallet = wallet.init();
 
 ipcMain.on('getwallets', function (event, data) {
     var list = wallet.getWalletFileList();
@@ -17,17 +17,17 @@ ipcMain.on('getwallets', function (event, data) {
 //update wallet
 ipcMain.on('changewallet', function (event, data) {
     if (data.length == 2) {
-        var currentfile=data[0]+'.cfg';
-        var currentpassword=data[1];
-        var w=new Wallet(currentpassword,currentfile);
-        var result='';
-        if(w.validate()){
-            wallet=w;
-            result='true';
-        }else{
-            result='false';
+        var currentfile = data[0] + '.cfg';
+        var currentpassword = data[1];
+        var w = new Wallet(currentpassword, currentfile);
+        var result = '';
+        if (w.validate()) {
+            wallet = w;
+            result = 'true';
+        } else {
+            result = 'false';
         }
-        event.sender.send('replychangewallet', [result,wallet.filename]);
+        event.sender.send('replychangewallet', [result, wallet.filename]);
     }
 })
 

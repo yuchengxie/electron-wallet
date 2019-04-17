@@ -1,3 +1,4 @@
+
 let http = require('http');
 var dhttp = require('dhttp');
 var message = require('./message');
@@ -9,8 +10,10 @@ const bitcoinjs = require('bitcoinjs-lib')
 const bs58 = require('bs58');
 const makesheetbinary = require('./makesheet');
 const transbinary = require('./transaction');
+const async = require('async')
 
 var bindMsg = message.bindMsg;
+var seq = 0;
 
 
 //交易测试
@@ -82,7 +85,7 @@ function PayTo() {
     this.address = '';
 }
 
-function query_sheet(pay_to, from_uocks) {
+async function query_sheet(pay_to, from_uocks) {
     var ext_in = null;
     var submit = true;
     var scan_count = 0;
@@ -98,7 +101,10 @@ function query_sheet(pay_to, from_uocks) {
         url: URL,
         body: buf
     }, function (err, res) {
-        if (err) return 0;
+        if (err) {
+            seq = 0;
+            return;
+        };
         var resbuf = res.body;
         var s = bufferhelp.bufToStr(resbuf);
         console.log('>>> 接收数据1:', resbuf, s, s.length);
@@ -108,17 +114,6 @@ function query_sheet(pay_to, from_uocks) {
 
         orgsheetMsg = msg.parse(payload, 0)[1];
         console.log('>>>>>> orgsheetMsg:', orgsheetMsg);
-        // var pubkey=wallet.getBIP32().publicKey;
-
-        wallet = new Wallet('xieyc', 'addr1');
-        var data = wallet.getWalletData();
-        // var pubkey = data.pubkey;
-        // var coin_type = data.coin_type;
-        // var coin_hash = pubkey + coin_type;
-
-        // console.log('>>>>>> pubkey:', pubkey, pubkey.length);
-        // console.log('>>>>>> coin_type:', coin_type, coin_type.length);
-        // console.log('>>>>>> coin_hash:', coin_hash, coin_hash.length);
 
         //check pay_to balance
 
@@ -134,8 +129,6 @@ function query_sheet(pay_to, from_uocks) {
         }
 
         console.log('d:', d);
-
-
         // var t = orgsheetMsg.pks_outs
 
         var pks_out0 = orgsheetMsg.pks_out[0].items;
@@ -154,9 +147,11 @@ function query_sheet(pay_to, from_uocks) {
                 //签名
                 console.log('>>> ready sign payload:', payload, bufferhelp.bufToStr(payload), payload.length);
                 wallet = new Wallet('xieyc', 'default.cfg');
+                console.log('wallet:',wallet);
                 var sig = Buffer.concat([wallet.sign(payload), CHR(hash_type)]);
                 console.log('sig:', sig, sig.length);
-                var pub_key = wallet.getBIP32().publicKey;
+                // var pub_key = wallet.getBIP32().publicKey;
+                var pub_key = wallet.BIP32.publicKey;
                 console.log('pub_key:', pub_key, pub_key.length);
                 var sig_script = Buffer.concat([CHR(sig), sig, CHR(pub_key), pub_key]);
                 console.log('sig_script:', sig_script, sig_script.length);
@@ -176,18 +171,10 @@ function query_sheet(pay_to, from_uocks) {
         txn.tx_out = orgsheetMsg.tx_out;
         txn.lock_time = orgsheetMsg.lock_time;
         txn.sig_raw = '';
-
-        // var buf = new Buffer(0);
-        // var msg = new bindMsg(gFormat.transaction);
-        // var p = msg.binary(txn, buf);
-        // var p_buf = message.g_binary(p, 'transaction');
-        //
         console.log('>>> txn msg:', txn);
         //Transaction binary2
         var txn_payload = transbinary.compayloadTran(txn);
 
-        console.log('>>> txn payload:', txn_payload, txn_payload.length);
-        console.log('>>> txn payload buf:', bufferhelp.bufToStr(txn_payload), bufferhelp.bufToStr(txn_payload).length);
         //txn payload magic
         var txn_binary = message.g_binary(txn_payload, 'tx');
         console.log('>>> txn_binary:', txn_binary, txn_binary.length, bufferhelp.bufToStr(txn_binary));
@@ -201,6 +188,7 @@ function query_sheet(pay_to, from_uocks) {
         while (_wait_submit.length > SHEET_CACHE_SIZE) {
             _wait_submit.remove(_wait_submit[0]);
         }
+
         if (submit) {
             var unsign_num = orgsheetMsg.tx_in.length - pks_num
             if (unsign_num != 0) { // leaving to sign
@@ -225,15 +213,47 @@ function query_sheet(pay_to, from_uocks) {
                     // console.log('bufferhelp.bufToStr(hash_):',bufferhelp.bufToStr(hash_));
                     if (msg3['hash'] == bufferhelp.bufToStr(hash_)) {
                         state_info[2] = 'submited';
-                        return orgsheetMsg.sequence;
+                        seq = orgsheetMsg.sequence;
+                        // var a=1;
+                        if (sn) {
+                            var info = submit_info(sn);
+                            var state = info[1];
+                            var txn_hash = info[2];
+                            var last_uocks = info[3];
+                            if (state == 'submited' && txn_hash) {
+                                var sDesc='\nTransaction state:'+state;
+                                if(last_uocks){
+                                    
+                                }
+                            }
+                        }
                     }
                 })
             }
         } else {
-            return orgsheetMsg.sequence;
+            seq = orgsheetMsg.sequence;
         }
     })
+    // console.log('seq:', seq);
 }
+
+function submit_info(sn) {
+    if (sn) {
+        var info;
+        var sn2 = _wait_submit[0];
+        var txn = _wait_submit[1];
+        var state = _wait_submit[2];
+        var hash2 = _wait_submit[3];
+        var uocks = _wait_submit[4];
+        if (sn == sn2) {
+            return (txn, state, hash2, uocks);
+        } else {
+            return (null, 'unknow', null, null);
+        }
+
+    }
+}
+
 
 function prepare_txn1_(pay_to, ext_in, scan_count, min_utxo, max_utxo, sort_flag, from_uocks) {
     sequence += 1;
@@ -249,7 +269,6 @@ function prepare_txn1_(pay_to, ext_in, scan_count, min_utxo, max_utxo, sort_flag
     pay_to1.value = 1 * Math.pow(10, 8);
     pay_to1.address = '1119AwBxBnRX3SdNM67EwPGb9CmSTUcP3qk7hhNVUuSGdXJGLjEnis';
     pay_to.push(pay_to1);
-
 
     makesheet = new MakeSheet();
     makesheet.vcn = 0;
@@ -274,29 +293,20 @@ function submit_txn_(msg, submit) {
     command.write('makesheet', 0);
     console.log('> msg:', msg);
 
-    //begin 数据组包
-    // var m = new bindMsg(gFormat.makesheet);
-    // var buf = new Buffer(0);
-    // var _msg = new bindMsg(gFormat.makesheet);
-    // var payload = _msg.binary(msg, buf);//165 bytes
-
-    //换做原始方式
     var payload = makesheetbinary.compayload(msg);
 
     console.log('makesheet to payload buf\n:', payload, bufferhelp.bufToStr(payload), payload.length);
-
     //16-20 payload length
     var len_buf = new Buffer(4);
     var len = payload.length;
     len_buf.writeInt32LE(len);
     // //20-24 checksum
     var checksum = bufferhelp.hexToBuffer(sha256(bufferhelp.hexToBuffer(sha256(payload)))).slice(0, 4);
-
     var b = Buffer.concat([magic, command, len_buf, checksum, payload]);
-
     return b;
 }
 
+//流的转换
 function make_payload(subscript, txns_ver, txns_in, txns_out, lock_time, input_index, hash_type) {
     var tx_outs;
     var tx_ins = [];
@@ -363,5 +373,7 @@ function CHR(buf) {
 var pay_to = '', from_uocks = '';
 
 //测试
-var s=query_sheet(pay_to, from_uocks);
-console.log('s:',s);
+var ret = query_sheet(pay_to, from_uocks);
+// console.log('ret:', ret);
+
+

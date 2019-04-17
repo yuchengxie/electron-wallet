@@ -1,13 +1,13 @@
-// let http = require('http');
-// var dhttp = require('dhttp');
-// var message = require('./message');
-// var gFormat = require('./format');
-// var wallet = require('./wallet');
-// const bufferhelp = require('./bufferhelp');
-// const sha256 = require('js-sha256');
-// const bs58 = require('bs58')
+let http = require('http');
+var dhttp = require('dhttp');
+var message = require('./message');
+var gFormat = require('./format');
+var wallet = require('./wallet');
+const bufferhelp = require('./bufferhelp');
+const sha256 = require('js-sha256');
+const bs58 = require('bs58')
 
-// var bindMsg = message.bindMsg;
+var bindMsg = message.bindMsg;
 
 //binary测试
 // 00 00 00 00 5f b8 ac 5c 36 31 31 31 38 4d 69 35 58 78 71 6d 71 54 42 70 37 54 6e 50 51 64 31 48 6b 
@@ -58,21 +58,21 @@
 // console.log('b:', b);
 
 
-//测试info
-// var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
-// dhttp({
-//     method: 'GET',
-//     url: URL,
-// }, function (err, res) {
-//     if (err) throw err;
-//     buf = res.body;
-//     //测试info
-//     payload = buf.slice(24);
-//     console.log('payload:', payload, payload.length);
-//     msg = new bindMsg(gFormat.info);
-//     var b = msg.parse(payload, 0);
-//     console.log('b:', b);
-// })
+// 测试info
+var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
+dhttp({
+    method: 'GET',
+    url: URL,
+}, function (err, res) {
+    if (err) throw err;
+    buf = res.body;
+    //测试info
+    payload = buf.slice(24);
+    console.log('payload:', payload, payload.length);
+    msg = new bindMsg(gFormat.info);
+    var b = msg.parse(payload, 0)[1];
+    console.log('b:', b);
+})
 
 //测试utxo
 // var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
@@ -130,12 +130,6 @@
 //     });
 // });
 
-var a='123123123';
-var len=a.length;
-var b=a.slice(0,9-1);
-
-console.log(len);
-console.log(b);
 
 
 

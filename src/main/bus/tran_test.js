@@ -184,9 +184,9 @@ async function query_sheet(pay_to, from_uocks) {
 		var txn_binary = message.g_binary(txn_payload, 'tx');
 		console.log('>>> txn_binary:', txn_binary, txn_binary.length, bufferhelp.bufToStr(txn_binary));
 
-		//paylaod  hashds raw
-		var hash_ = bitcoinjs.crypto.sha256(bitcoinjs.crypto.sha256(txn_binary.slice(24, txn_binary.length - 1)))
-
+		//paylaod  hashds excludes raw_script
+		var hash_ = bitcoinjs.crypto.sha256(bitcoinjs.crypto.sha256(txn_binary.slice(24, txn_binary.length - 1)));
+		
 		console.log('>>> hash_:', hash_, hash_.length, bufferhelp.bufToStr(hash_));
 		var state_info = [orgsheetMsg.sequence, txn, 'requested', hash_, orgsheetMsg.last_uocks];
 		_wait_submit.push(state_info);
@@ -239,12 +239,12 @@ async function query_sheet(pay_to, from_uocks) {
 							if (txn_hash) {
 								var url = WEB_SERVER_ADDR + '/txn/sheets/state?hash=' + txn_hash;
 								// var url = 'http://raw0.nb-chain.net/txn/sheets/state?hash=' + txn_hash
-								setInterval(() => {
+								// setInterval(() => {
 									dhttp({
 										method: 'GET',
 										url: url,
 									}, function (err, res) {
-										console.log(res);
+										// console.log(res);
 										if (res.statusCode == 400) {
 											var payload = message.g_parse(res.body);
 											var msg = new bindMsg(gFormat.udpreject);
@@ -254,13 +254,13 @@ async function query_sheet(pay_to, from_uocks) {
 											var b = bufferhelp.hexStrToBuffer(s);
 											var m = b.toString('latin1');
 											if (m === 'in pending state') {
-												console.log('pending');
+												console.log('pending...\n');
 											} else {
 												console.log('Error: ' + sErr);
 											}
 										}
 									})
-								}, 5000);
+								// }, 5000);
 
 							}
 						}
@@ -405,8 +405,8 @@ function CHR(n) {
 // }
 
 //测试
-var pay_to = '', from_uocks = '';
-var ret = query_sheet(pay_to, from_uocks);
+// var pay_to = '', from_uocks = '';
+// var ret = query_sheet(pay_to, from_uocks);
 
 
 module.exports = {

@@ -4,8 +4,11 @@ const Wallet = require('./bus/wallet');
 const message = require('./bus/message')
 const bh = require('./bus/bufferhelp');
 
+var WEB_SERVER_ADDR = 'http://user1-node.nb-chain.net';
+// var WEB_SERVER_ADDR = 'http://raw0.nb-chain.net';
+
 //set default wallet
-var wallet = new Wallet('xieyc','default.cfg');
+var wallet = new Wallet('xieyc', 'default.cfg');
 // wallet = wallet.init();
 
 ipcMain.on('getwallets', function (event, data) {
@@ -62,7 +65,8 @@ ipcMain.on('create', function (event, data) {
 ipcMain.on('block', function (event, data) {
     // var height = 20299;
     // var hash = '00...';
-    var url = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=30281'
+    // var url = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=30281'
+    var url = WEB_SERVER_ADDR + '/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=30281'
     dhttp({
         url: url,
         method: 'GET'
@@ -86,7 +90,8 @@ ipcMain.on('info', function (event, data) {
     var addr = wallet.getAddrFromWallet();
     console.log('addr:', addr);
 
-    var url = 'http://raw0.nb-chain.net/txn/state/account?addr=' + addr + '&uock=' + before + '&uock2=' + after;
+    // var url = 'http://raw0.nb-chain.net/txn/state/account?addr=' + addr + '&uock=' + before + '&uock2=' + after;
+    var url = WEB_SERVER_ADDR + '/txn/state/account?addr=' + addr + '&uock=' + before + '&uock2=' + after;
     console.log('url:', url);
     dhttp(
         {
@@ -107,7 +112,8 @@ ipcMain.on('info', function (event, data) {
 ipcMain.on('utxo', function (event, data) {
     // var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118hfRMRrJMgSCoV9ztyPcjcgcMZ1zThvqRDLUw3xCYkZwwTAbJ5o&num=5&uock2=[]';
     var addr = wallet.getAddrFromWallet();
-    var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=' + addr + '&num=5&uock2=[]';
+    // var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=' + addr + '&num=5&uock2=[]';
+    var url = WEB_SERVER_ADDR + '/txn/state/uock?addr=' + addr + '&num=5&uock2=[]';
     dhttp(
         {
             url: url,
@@ -126,8 +132,8 @@ ipcMain.on('utxo', function (event, data) {
     )
 })
 
-var test=require('./bus/tran_test')
+var test = require('./bus/tran_test')
 ipcMain.on('transfer', function (event, data) {
     console.log(data);
-    test.query_sheet('','');
+    test.query_sheet('', '');
 })

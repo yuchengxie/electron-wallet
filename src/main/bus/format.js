@@ -254,11 +254,21 @@ var transaction = {
     }
 }
 
-var udpconfirm={
-    getFmt:function(){
+var udpconfirm = {
+    getFmt: function () {
         return [
             ['hash', byte(32)],
             ['lock_time', 'q']
+        ]
+    }
+}
+
+var udpreject = {
+    getFmt: function () {
+        return [
+            ['sequence', 'I'],
+            ['message', varstr],
+            ['source', varstr]
         ]
     }
 }
@@ -293,7 +303,8 @@ var gFormat = {
 
     'transaction': transaction,
 
-    'udpconfirm':udpconfirm,
+    'udpconfirm': udpconfirm,
+    'udpreject': udpreject,
 }
 
 module.exports = gFormat;

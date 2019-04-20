@@ -96,11 +96,14 @@ function compayloadTran(msg) {
         b = new Buffer(8);
         var c = n.toString(16);
         // var d = toBuffer(c);
-        var d = bh.hexStrToBuffer(c);
+        var d = bh.hexStrToBuffer(c).reverse();
+        var j=0;
         for (var i = 0; i < d.length; i++) {
-            b[i] = d[i];
+            b[j] = d[i];
+            j++;
         }
-        a = Buffer.concat([a, b.reverse()]);
+        // a = Buffer.concat([a, b.reverse()]);
+        a = Buffer.concat([a, b]);
     }
     return a;
 }

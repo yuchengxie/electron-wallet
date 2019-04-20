@@ -126,7 +126,8 @@ ipcMain.on('utxo', function (event, data) {
     )
 })
 
+var test=require('./bus/tran_test')
 ipcMain.on('transfer', function (event, data) {
-
     console.log(data);
+    test.query_sheet('','');
 })

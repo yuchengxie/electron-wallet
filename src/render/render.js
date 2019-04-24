@@ -1,8 +1,8 @@
 const ipcRenderer = require('electron').ipcRenderer;
 
-var filename='';
-var password='';
-var currentfn='';
+var filename = '';
+var password = '';
+var currentfn = '';
 
 window.onload = function () {
     //init default wallet
@@ -14,7 +14,7 @@ window.onload = function () {
 
     ipcRenderer.on('replygetwallets', function (event, data) {
         var childs = b_change.children;
-        console.log('childs:',childs,childs.length);
+        // console.log('childs:', childs, childs.length);
         for (var i = childs.length - 1; i >= 0; i--) {
             b_change.removeChild(childs[i]);
         }
@@ -24,33 +24,34 @@ window.onload = function () {
             ele.innerText = name;
             b_change.appendChild(ele);
         }
-        currentfn=b_change.value;
+        currentfn = b_change.value;
     });
 
     b_change.onchange = function (e) {
         //输入钱包设置密码
-        currentfn=e.target.value;
+        currentfn = e.target.value;
         console.log('changewallet e:', currentfn);
     }
 
     btn_wallet_change.onclick = function () {
         var currentpwd = input_change_pwd.value;
         console.log('filename:', currentfn);
-        if (isEmpty(currentfn)) {
+        if (IsEmpty(currentfn)) {
             alert('filename can not be empty');
             return;
         }
-        if (isEmpty(currentpwd)) {
+        if (IsEmpty(currentpwd)) {
             alert('password can not be empty');
             return;
         }
-        password=currentpwd;
-        filename=currentfn;
-        ipcRenderer.send('changewallet', [filename, password]);
+        password = currentpwd;
+        filename = currentfn;
+        // ipcRenderer.send('changewallet', [filename, password]);
+        ipcRenderer.send('changewallet', [password, filename]);
     }
 
     ipcRenderer.on('replychangewallet', function (event, data) {
-        console.log('replychangewallet data:',data);
+        console.log('replychangewallet data:', data);
         if (data && data.length == 2) {
             if (data[0] == 'true') {
                 alert('change success to wallet:' + data[1]);
@@ -70,11 +71,11 @@ window.onload = function () {
         var v_phone = phone.value;
         var v_pwd = pwd.value;
         v_wallet_name = create_wallet_name.value;
-        if (isEmpty(v_pwd)) {
+        if (IsEmpty(v_pwd)) {
             alert('password can not be empty');
             return;
         };
-        if (isEmpty(v_wallet_name)) {
+        if (IsEmpty(v_wallet_name)) {
             alert('filename can not be empty');
             return;
         };
@@ -103,15 +104,15 @@ window.onload = function () {
         var pvk = import_prvk.value;
         var pwd = p_import_pwd.value;
         var wallet_name = import_wallet_name.value + '.cfg';
-        if (isEmpty(pvk)) {
+        if (IsEmpty(pvk)) {
             alert('pvk can not be empty');
             return;
         };
-        if (isEmpty(pwd)) {
+        if (IsEmpty(pwd)) {
             alert('password can not be empty');
             return;
         };
-        if (isEmpty(wallet_name)) {
+        if (IsEmpty(wallet_name)) {
             alert('filename can not be empty');
             return;
         };
@@ -127,81 +128,82 @@ window.onload = function () {
 
     //wallet_info
     var btn_wallet_info = getElement('frame_wallet_info', 'btn_wallet_info');
+    var info_address = getElement('frame_wallet_info', 'info_address');
     btn_wallet_info.onclick = function () {
-        ipcRenderer.send('info', 'this is info');
+        var address = info_address.value.trim();
+        console.log('address:', address);
+        if (address.length != 0 && address.length != 54) {
+            //todo
+            alert('address invalid');
+            return;
+        }
+        ipcRenderer.send('info', address);
     }
 
-    var info_list = getElement('frame_wallet_info', 'info_list');
-    var link_no = getElement('frame_wallet_info', 'link_no');
-    var timestamp = getElement('frame_wallet_info', 'timestamp');
-    var account = getElement('frame_wallet_info', 'account');
-    var search = getElement('frame_wallet_info', 'search');
-    var found_uock = getElement('frame_wallet_info', 'found_uock');
-    var found_value = getElement('frame_wallet_info', 'found_value');
-    var found_height = getElement('frame_wallet_info', 'found_height');
+    var infocard = getElement('frame_wallet_info', 'infocard');
+    var infocontent = getElement('frame_wallet_info', 'infocontent');
     ipcRenderer.on('replyinfo', function (event, data) {
         if (data) {
-            console.log(data);
-            info_list.style.display = 'block';
-            link_no.innerText = 'link_no:' + data.link_no;
-            timestamp.innerText = 'timestamp:' + data.timestamp;
-            account.innerText = 'account:' + data.account;
-            search.innerText = 'search:' + data.search;
-            found_uock.innerText = 'found_uock:' + data.found[0].uock;
-            found_value.innerText = 'found_value:' + data.found[0].value;
-            found_height.innerText = 'found_height:' + data.found[0].height;
+            var d = {};
+            d.account = data.account;
+            d.total = data.total;
+            d.link_no = data.link_no;
+            d.search = data.search;
+            d.timestamp = data.timestamp;
+            d.found=data.found;
+            infocard.style.display = 'block';
+            var s = JSON.stringify(d, "", "\t");
+            infocontent.innerText = s;
         }
     })
 
     //block
+    var block_hash = getElement('frame_block', 'block_hash');
+    var block_height = getElement('frame_block', 'block_height');
+    var blockcard = getElement('frame_block', 'blockcard');
+    var blockcontent = getElement('frame_block', 'blockcontent');
     var btn_block = getElement('frame_block', 'btn_block');
     btn_block.onclick = function () {
-        ipcRenderer.send('block', '区块查询');
+        var hash = block_hash.value;
+        var height = block_height.value;
+        console.log('>> hash:', hash);
+        console.log('>> height:', height);
+        if (!IsEmpty(hash) && hash.length != 64) {
+            alert('hash length must be 64');
+            return;
+        }
+        if (!IsEmpty(height) && !IsInteger(height)) {
+            alert('height err');
+            return;
+        }
+        ipcRenderer.send('block', [hash, height]);
     }
 
-    var block_list = getElement('frame_block', 'block_list');
-    var b_link_no = getElement('frame_block', 'link_no');
-    var heights = getElement('frame_block', 'heights');
-    var txcks = getElement('frame_block', 'txcks');
-    var version = getElement('frame_block', 'version');
-    var prev_block = getElement('frame_block', 'prev_block');
-    var b_timestamp = getElement('frame_block', 'timestamp');
-    var bits = getElement('frame_block', 'bits');
-    var nonce = getElement('frame_block', 'nonce');
-    var miner = getElement('frame_block', 'miner');
-    var txn_count = getElement('frame_block', 'txn_count');
     ipcRenderer.on('replyblock', function (event, data) {
         console.log(data);
-        block_list.style.display = 'block';
-        b_link_no.innerText = 'link_no:' + data.link_no;
-        heights.innerText = 'heights:' + data.heights[0];
-        txcks.innerText = 'txcks:' + data.txcks[0];
-        version.innerText = 'version:' + data.headers[0].version;
-        prev_block.innerText = 'prev_block:' + data.headers[0].prev_block;
-        b_timestamp.innerText = 'timestamp:' + data.headers[0].timestamp;
-        bits.innerText = 'bits:' + data.headers[0].bits;
-        nonce.innerText = 'nonce:' + data.headers[0].nonce;
-        miner.innerText = 'miner:' + data.headers[0].miner;
-        txn_count.innerText = 'txn_count:' + data.headers[0].txn_count;
+        if (data) {
+            blockcard.style.display = 'block';
+            // var s = JSON.stringify(data, null, "\t");
+            var s = JSON.stringify(data, null, 4);
+            blockcontent.innerText = s;
+        }
     })
 
     //utxo
     var btn_utxo = getElement('frame_utxo', 'btn_utxo');
-    var utxo_list = getElement('frame_utxo', 'utxo_list');
+    var utxocard = getElement('frame_utxo', 'utxocard');
+    var utxocontent = getElement('frame_utxo', 'utxocontent');
     btn_utxo.onclick = function () {
         ipcRenderer.send('utxo', 'utxo查询');
     }
     ipcRenderer.on('replyutxo', function (event, data) {
         console.log(data);
         if (data) {
+            utxocard.style.display='block';
+            var s = JSON.stringify(data, null, "\t");
+            console.log(s);
             //demo
-            for (var i = 0; i < 3; i++) {
-                var ele = document.createElement('li');
-                ele.className = 'list-group-item';
-                ele.id = 'list_' + i;
-                ele.innerText = '111';
-                utxo_list.appendChild(ele);
-            }
+            utxocontent.innerText = s;
         }
     })
 
@@ -211,7 +213,6 @@ window.onload = function () {
     var t_value = getElement('frame_transfer', 't_value');
     var btn_txns = getElement('frame_transfer', 'btn_txns');
     // var btn_utxo = getElement('frame_utxo', 'btn_utxo');
-    console.log('btn_txns:', btn_txns);
     btn_txns.onclick = function () {
         var from = addrfrom.value;
         var to = addrto.value;
@@ -222,20 +223,24 @@ window.onload = function () {
 
 }
 
-
-
-
-
 function getElement(frameId, eleId) {
     var ele = document.getElementById(frameId).contentWindow.document.getElementById(eleId);
     return ele;
 }
 
-function isEmpty(obj) {
+function IsInteger(str) {
+    str = str.trim();
+    var reg = new RegExp('^[0-9]*$');
+    if (reg.test(str)) {
+        return true;
+    }
+    return false;
+}
+
+function IsEmpty(obj) {
     if (typeof obj == "undefined" || obj == null || obj == "") {
         return true;
     } else {
         return false;
     }
 }
-

@@ -47,7 +47,6 @@ function toBufEndian(num, isHex, len) {
     return b0;
 }
 
-
 function bufToStr(buf) {
     var s = '';
     buf.forEach(ele => {

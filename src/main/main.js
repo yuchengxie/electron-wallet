@@ -3,6 +3,7 @@ const dhttp = require('dhttp');
 const Wallet = require('./bus/wallet');
 const message = require('./bus/message')
 const bh = require('./bus/bufferhelp');
+const bitcoinjs = require('bitcoinjs-lib');
 
 var WEB_SERVER_ADDR = 'http://user1-node.nb-chain.net';
 // var WEB_SERVER_ADDR = 'http://raw0.nb-chain.net';
@@ -20,8 +21,8 @@ ipcMain.on('getwallets', function (event, data) {
 //update wallet
 ipcMain.on('changewallet', function (event, data) {
     if (data.length == 2) {
-        var currentfile = data[0] + '.cfg';
-        var currentpassword = data[1];
+        var currentpassword = data[0];
+        var currentfile = data[1] + '.cfg';
         var w = new Wallet(currentpassword, currentfile);
         var result = '';
         if (w.validate()) {
@@ -63,10 +64,29 @@ ipcMain.on('create', function (event, data) {
 })
 
 ipcMain.on('block', function (event, data) {
-    // var height = 20299;
-    // var hash = '00...';
-    // var url = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=30281'
-    var url = WEB_SERVER_ADDR + '/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=30281'
+    // block_hash should be str or None
+    var block_hash = data[0];
+    var block_height = data[1];
+    var height = '';
+    if (block_height.length == 0) {
+        //default heights
+        var a = [-1, -2, -3];
+        for (var i = 0; i < a.length; i++) {
+            height += '&hi=' + a[i];
+        }
+    } else {
+        height = '&hi=' + block_height;
+    }
+    var _hash = '';
+    if (block_hash.length == 0) {
+        for (let i = 0; i < 32; i++) {
+            _hash += '00';
+        }
+    } else {
+        _hash = block_hash;
+        height = '';
+    }
+    var url = WEB_SERVER_ADDR + '/txn/state/block?&hash=' + _hash + height;
     dhttp({
         url: url,
         method: 'GET'
@@ -76,7 +96,26 @@ ipcMain.on('block', function (event, data) {
         var payload = message.g_parse(buf);
         var msg = message.parseBlock(payload)[1];
         console.log('> msg:', msg);
-        event.sender.send('replyblock', msg);
+
+        var headers = msg['headers'];
+        var blocks = [];
+        for (var idx in headers) {
+            var _block = {};
+            _block.height = msg['heights'][idx];
+            _block.txck = msg['txcks'][idx];
+            _block.version = headers[idx]['version'];
+            _block.link_no = headers[idx]['link_no'];
+            _block.prev_block = headers[idx]['prev_block'];
+            _block.merkle_root = headers[idx]['merkle_root'];
+            _block.timestamp = headers[idx]['timestamp'];
+            _block.bits = headers[idx]['bits'];
+            _block.nonce = headers[idx]['nonce'];
+            _block.miner = headers[idx]['miner'];
+            _block.txn_count = headers[idx]['txn_count'];
+            _block.hash = getHash(_block);
+            blocks.push(_block);
+        }
+        event.sender.send('replyblock', blocks);
     })
 })
 
@@ -86,12 +125,17 @@ ipcMain.on('info', function (event, data) {
     let after = 0;
     let before = 0;
     let address = '';
-    console.log('wallet:', wallet);
-    var addr = wallet.getAddrFromWallet();
-    console.log('addr:', addr);
+    var addr = data;
+    console.log('>>> pass address:', address);
+    if (addr.length == 0) {
+        //if empty,default local wallet address
+        addr = wallet.getAddrFromWallet();
+    }
+    console.log('url addr:', addr);
 
     // var url = 'http://raw0.nb-chain.net/txn/state/account?addr=' + addr + '&uock=' + before + '&uock2=' + after;
-    var url = WEB_SERVER_ADDR + '/txn/state/account?addr=' + addr + '&uock=' + before + '&uock2=' + after;
+    // var url = WEB_SERVER_ADDR + '/txn/state/account?addr=' + addr + '&uock=' + before + '&uock2=' + after;
+    var url = WEB_SERVER_ADDR + '/txn/state/account?addr=' + addr;
     console.log('url:', url);
     dhttp(
         {
@@ -103,6 +147,8 @@ ipcMain.on('info', function (event, data) {
             var payload = message.g_parse(buf);
             var msg = message.parseInfo(payload)[1];
             msg['account'] = bh.hexToBuffer(msg['account']).toString('latin1');
+            //total utxo
+            msg['total'] = getTotal(msg);
             console.log('> info msg:', msg);
             event.sender.send('replyinfo', msg);
         }
@@ -110,10 +156,12 @@ ipcMain.on('info', function (event, data) {
 })
 
 ipcMain.on('utxo', function (event, data) {
-    // var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118hfRMRrJMgSCoV9ztyPcjcgcMZ1zThvqRDLUw3xCYkZwwTAbJ5o&num=5&uock2=[]';
+    var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118hfRMRrJMgSCoV9ztyPcjcgcMZ1zThvqRDLUw3xCYkZwwTAbJ5o&num=2&uock2=[]';
     var addr = wallet.getAddrFromWallet();
     // var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=' + addr + '&num=5&uock2=[]';
-    var url = WEB_SERVER_ADDR + '/txn/state/uock?addr=' + addr + '&num=5&uock2=[]';
+    // var url = WEB_SERVER_ADDR + '/txn/state/uock?addr=' + addr + '&num=5&uock2=[]';
+    // var url = WEB_SERVER_ADDR + '/txn/state/uock?addr=' + addr;
+    // var url = WEB_SERVER_ADDR + '/txn/state/uock?addr=1118hfRMRrJMgSCoV9ztyPcjcgcMZ1zThvqRDLUw3xCYkZwwTAbJ5o&uock=[]';
     dhttp(
         {
             url: url,
@@ -127,6 +175,7 @@ ipcMain.on('utxo', function (event, data) {
             console.log('> res:', payload, payload.length);
             var msg = message.parseUtxo(payload)[1];
             console.log('> msg:', msg);
+
             event.sender.send('replyutxo', msg);
         }
     )
@@ -137,3 +186,32 @@ ipcMain.on('transfer', function (event, data) {
     console.log(data);
     test.query_sheet('', '');
 })
+
+function getHash(_block) {
+    console.log('_block:', _block);
+    var version = new Buffer(4);
+    version.writeInt32LE(_block['version']);
+    var link_no = new Buffer(4);
+    link_no.writeInt32LE(_block['link_no']);
+    var prev_block = bh.hexStrToBuffer(_block['prev_block']);
+    var merkle_root = bh.hexStrToBuffer(_block['merkle_root']);
+    var timestamp = new Buffer(4);
+    timestamp.writeInt32LE(_block['timestamp']);
+    var bits = new Buffer(4);
+    bits.writeInt32LE(_block['bits']);
+    var nonce = new Buffer(4);
+    nonce.writeInt32LE(_block['nonce']);
+    var b = Buffer.concat([version, link_no, prev_block, merkle_root, timestamp, bits, nonce]);
+    console.log('get b:', b, bh.bufToStr(b));
+    var h = bitcoinjs.crypto.hash256(b);
+    return bh.bufToStr(h);
+}
+
+function getTotal(msg) {
+    var total = 0;
+    var found=msg['found'];
+    for (var i=0;i<found.length;i++) {
+        total+=found[i]['value'];
+    }
+    return total;
+}

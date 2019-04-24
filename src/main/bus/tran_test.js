@@ -135,6 +135,7 @@ async function query_sheet(pay_to, from_uocks) {
 		// var t = orgsheetMsg.pks_outs
 
 		var pks_out0 = orgsheetMsg.pks_out[0].items;
+		// var b_pks_out0=bufferhelp.hexStrToBuffer(pks_out0);
 		// var pks_num = pks_out0.length;
 		var pks_num = orgsheetMsg.pks_out.length;
 		var tx_ins2 = [];
@@ -146,7 +147,7 @@ async function query_sheet(pay_to, from_uocks) {
 			if (idx < pks_num) {
 				var hash_type = 1;
 				//transaction
-				var payload = make_payload(pks_out0.slice(idx), orgsheetMsg.version, orgsheetMsg.tx_in, orgsheetMsg.tx_out, 0, idx, hash_type)  //lock_time=0
+				var payload = make_payload(pks_out0, orgsheetMsg.version, orgsheetMsg.tx_in, orgsheetMsg.tx_out, 0, idx, hash_type)  //lock_time=0
 				//签名
 				console.log('>>> ready sign payload:', payload, bufferhelp.bufToStr(payload), payload.length);
 				wallet = new Wallet('xieyc', 'default.cfg');
@@ -184,9 +185,9 @@ async function query_sheet(pay_to, from_uocks) {
 		var txn_binary = message.g_binary(txn_payload, 'tx');
 		console.log('>>> txn_binary:', txn_binary, txn_binary.length, bufferhelp.bufToStr(txn_binary));
 
-		//paylaod  hashds excludes raw_script
+		//payload  hashds excludes raw_script
 		var hash_ = bitcoinjs.crypto.sha256(bitcoinjs.crypto.sha256(txn_binary.slice(24, txn_binary.length - 1)));
-		
+
 		console.log('>>> hash_:', hash_, hash_.length, bufferhelp.bufToStr(hash_));
 		var state_info = [orgsheetMsg.sequence, txn, 'requested', hash_, orgsheetMsg.last_uocks];
 		_wait_submit.push(state_info);
@@ -239,7 +240,7 @@ async function query_sheet(pay_to, from_uocks) {
 							if (txn_hash) {
 								var url = WEB_SERVER_ADDR + '/txn/sheets/state?hash=' + txn_hash;
 								// var url = 'http://raw0.nb-chain.net/txn/sheets/state?hash=' + txn_hash
-								// setInterval(() => {
+								setInterval(() => {
 									dhttp({
 										method: 'GET',
 										url: url,
@@ -258,14 +259,23 @@ async function query_sheet(pay_to, from_uocks) {
 											} else {
 												console.log('Error: ' + sErr);
 											}
+										} else if (res.statusCode = 200) {
+											var payload = message.g_parse(res.body);
+											var msg = new bindMsg(gFormat.udpconfirm);
+											var confirmsg = msg.parse(payload, 0)[1];
+											if (confirmsg.hash == hash_) {
+												var hi = confirmsg['arg'] & 0xffffffff;
+												var num = (confirmsg['arg'] >> 32) & 0xffff;
+												var idx = (confirmsg['arg'] >> 48) & 0xffff;
+												var state = 'confirm=' + num + ' height=' + hi + ' idx=' + idx;
+												console.log('state:',state);
+											}
 										}
 									})
-								// }, 5000);
-
+								}, 10000);
 							}
 						}
 					}
-
 				})
 			}
 		}
@@ -407,7 +417,6 @@ function CHR(n) {
 //测试
 // var pay_to = '', from_uocks = '';
 // var ret = query_sheet(pay_to, from_uocks);
-
 
 module.exports = {
 	query_sheet

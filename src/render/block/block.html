@@ -13,23 +13,25 @@
 
 <body>
     <div class="container my-3">
-        <button id='btn_block' class="btn btn-info">查询区块</button>
-        <ul class="list-group" id='block_list' style="display:none">
-            <li class="list-group-item" id='link_no'></li>
-            <li class="list-group-item" id='heights'></li>
-            <li class="list-group-item" id='txcks'></li>
-            <li class="list-group-item" id='version'></li>
-            <li class="list-group-item" id='prev_block'></li>
-            <li class="list-group-item" id='timestamp'></li>
-            <li class="list-group-item" id='bits'></li>
-            <li class="list-group-item" id='nonce'></li>
-            <li class="list-group-item" id='miner'></li>
-            <li class="list-group-item" id='txn_count'></li>
-        </ul>
+        <div class="input-group mb-2">
+            <input type="text" id='block_hash' class="form-control" placeholder="请输入区块哈希" aria-label="输入区块哈希"
+                aria-describedby="basic-addon2">
+            <input type="text" id='block_height' class="form-control" placeholder="请输入区块高度" aria-label="输入区块高度"
+                aria-describedby="basic-addon2">
+            <div class="input-group-append">
+                <button id='btn_block' class="btn btn-outline-secondary" type="button">查询区块</button>
+            </div>
+        </div>
+        
+        <div class="card" id='blockcard' style="display:none">
+            <div class="card-body" style="font-size:15px" id='blockcontent'>
+            </div>
+        </div>
+
     </div>
 </body>
 
 </html>
 <style>
-    
+
 </style>

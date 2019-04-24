@@ -1,4 +1,3 @@
-
 let http = require('http');
 var dhttp = require('dhttp');
 var message = require('./message');
@@ -14,8 +13,8 @@ const async = require('async')
 
 var bindMsg = message.bindMsg;
 var seq = 0;
-var WEB_SERVER_ADDR = 'http://user1-node.nb-chain.net';
-// var WEB_SERVER_ADDR = 'http://raw0.nb-chain.net';
+// var WEB_SERVER_ADDR = 'http://user1-node.nb-chain.net';
+var WEB_SERVER_ADDR = 'http://raw0.nb-chain.net';
 
 
 //交易测试
@@ -415,10 +414,9 @@ function CHR(n) {
 // }
 
 //测试
-// var pay_to = '', from_uocks = '';
-// var ret = query_sheet(pay_to, from_uocks);
+var pay_to = '', from_uocks = '';
+var ret = query_sheet(pay_to, from_uocks);
 
 module.exports = {
 	query_sheet
 }
-

@@ -368,7 +368,7 @@ function g_parse(data) {
     var command = data.slice(4, 16);
     var stripCommand = strip(command);
     var msg_type = stripCommand.toString('latin1');
-    console.log('> msg_type:', msg_type, msg_type.length);
+    // console.log('> msg_type:', msg_type, msg_type.length);
     return payload;
 }
 

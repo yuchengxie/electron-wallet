@@ -26,7 +26,6 @@ function Wallet(password, filename) {//Wallet
     this.save = save;
     this.sign = sign;
     this.genAddr = genAddr;
-    this.sign = sign;
     this.verify = verify;
     this.getWalletData = getWalletData;
     this.validate = validate;
@@ -203,10 +202,10 @@ function readFromFile(filename, isDefault) {//read file
 
 function sign(buf) {
     // var hash = bitcoinjs.crypto.sha256(buf);
-    // var hash = bitcoinjs.crypto.sha256(bitcoinjs.crypto.sha256(buf));
-    var hash = bitcoinjs.crypto.hash256(buf);
-    var s=bufferhelp.bufToStr(hash);
-    var hash1=sha256(sha256(buf));
+    var hash = bitcoinjs.crypto.sha256(bitcoinjs.crypto.sha256(buf));
+    // var hash = bitcoinjs.crypto.hash256(buf);
+    // var s=bufferhelp.bufToStr(hash);
+    // var hash1=sha256(sha256(buf));
     var wif = this.BIP32.toWIF();
     var keyPair = bitcoinjs.ECPair.fromWIF(wif);//sign with prvkey
     var signature = keyPair.sign(hash).toDER(); // ECSignature对象

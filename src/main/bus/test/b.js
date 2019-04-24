@@ -1,128 +1,61 @@
-
-
-
-var dhttp = require('dhttp');
-var asyns = require('async');
-
-function t1() {
-    dhttp({
-        url: 'http://www.baidu.com'
-    }, function (err, res) {
-        console.log('t1 res1 ok');
-    });
-}
-
-function t2() {
-    dhttp({
-        url: 'http://www.baidu.com'
-    }, function (err, res) {
-        console.log('t2 res2 ok');
-    })
-}
-
-function t3() {
-    console.log('t3...');
-}
-
-function t4() {
-    console.log('t4...');
-
-}
-
-function test() {
-    var m = t1();
-    var n = t2();
-    m.then((res) => {
-        t3();
-    })
-    // t3();
-    // t4();
-}
-// test();
-
-
-// var co = require('co');
-// //登录请求
-// let loginReq = new Promise((resolve, reject) => {
-//     setTimeout(function () {
-//         console.log('1111');
-//         resolve({ success: true })
-//     }, 2000)
-// })
-
-// console.log(loginReq);
-
-// let userInfoReq = new Promise((resolve, reject) => {
-//     setTimeout(function () {
-//         resolve({ nickName: 'dounine' })
-//     }, 2000)
-// });
-
-// loginReq.then(res=>{
-//     if(res.success){
-//         userInfoReq.then(res=>{
-//             console.log(res.nickName);
-//         })
-//     }
-// })
-// loginReq;
-// userInfoReq;
-
-// co(function* () {
-//     let loginInfo = yield loginReq;
-//     if (loginInfo.success) {
-//         let userinfo = yield userInfoReq;
-//         console.log('ok');
-//     }
-// })
+const chinaTime = require('china-time');
+console.log(chinaTime('YYYY-MM-DD HH:mm:ss')); // 2018-02-07 13:08:17
 
 
 function runAsync1() {
-    var promise = new Promise(function (resolve, reject) {
-        console.log('getin runAsync1');
-        dhttp({
-            url: 'http://www.baidu.com'
-        }, function (err, res) {
-            console.log('runAsync1 ok');
-            resolve(res);
-
-        });
-    });
-    return promise;
+	var promise = new Promise(function (resolve, reject) {
+		setTimeout(function () {
+			console.log('异步1完成');
+			resolve('xxx1');
+		}, 1000);
+	});
+	return promise;
 }
 
-function runAsync2(){
-    var promise = new Promise(function (resolve, reject) {
-        console.log('getin runAsync2');
-        dhttp({
-            url: 'http://www.baidu.com'
-        }, function (err, res) {
-            if(err){
-                reject(err);
-            }
-            console.log('runAsync2 ok');
-            resolve(res);
-        });
-    });
-    return promise;
+function runAsync2() {
+	var promise = new Promise(function (resolve, reject) {
+		setTimeout(function () {
+			console.log('异步2完成');
+			resolve('xxx2');
+		}, 2000);
+	});
+	return promise;
 }
 
+function runAsync3() {
+	var promise = new Promise(function (resolve, reject) {
+		setTimeout(function () {
+			console.log('异步3完成');
+			resolve('xxx3');
+		}, 2000);
+	});
+	return promise;
+}
 
+// runAsync1()
+// 	.then(function (data) {
+// 		console.log('runAsync1 拿到数据:', data);
+// 		return runAsync2();
+// 	})
+// 	.then(function (data) {
+// 		console.log('runAsync2 拿到数据:', data);
+// 		return runAsync3();
+// 	})
+// 	.then(function (data) {
+// 		console.log('runAsync3 拿到数据:', data);
+// 	});
+// runAsync1();
+// runAsync2();
+// runAsync3();
+
+
+//不是顺序执行
 // runAsync1().then(res => {
-//     console.log('res:', res);
-//     // console.log('222');
+// 	console.log('res1');
 // });
-
-var p=new Promise(runAsync1,runAsync2);
-p.then((res)=>{
-    console.log('p res');
-})
-
-// runAsync1().then(res=>{
-//     runAsync2(res).then(r=>{
-//         console.log('r:ok');
-//     })
-// })
-
-
-
+// runAsync2().then(res => {
+// 	console.log('res2');
+// });
+// runAsync3().then(res => {
+// 	console.log('res3');
+// });

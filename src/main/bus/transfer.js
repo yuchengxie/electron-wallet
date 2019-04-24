@@ -1,66 +1,4 @@
 
-
-function runAsync1() {
-	var promise = new Promise(function (resolve, reject) {
-		setTimeout(function () {
-			console.log('异步1完成');
-			resolve('xxx1');
-		}, 1000);
-	});
-	return promise;
-}
-
-function runAsync2() {
-	var promise = new Promise(function (resolve, reject) {
-		setTimeout(function () {
-			console.log('异步2完成');
-			resolve('xxx2');
-		}, 2000);
-	});
-	return promise;
-}
-
-function runAsync3() {
-	var promise = new Promise(function (resolve, reject) {
-		setTimeout(function () {
-			console.log('异步3完成');
-			resolve('xxx3');
-		}, 2000);
-	});
-	return promise;
-}
-
-// runAsync1()
-// 	.then(function (data) {
-// 		console.log('runAsync1 拿到数据:', data);
-// 		return runAsync2();
-// 	})
-// 	.then(function (data) {
-// 		console.log('runAsync2 拿到数据:', data);
-// 		return runAsync3();
-// 	})
-// 	.then(function (data) {
-// 		console.log('runAsync3 拿到数据:', data);
-// 	});
-// runAsync1();
-// runAsync2();
-// runAsync3();
-
-
-//不是顺序执行
-// runAsync1().then(res => {
-// 	console.log('res1');
-// });
-// runAsync2().then(res => {
-// 	console.log('res2');
-// });
-// runAsync3().then(res => {
-// 	console.log('res3');
-// });
-
-
-
-let http = require('http');
 var dhttp = require('dhttp');
 var message = require('./message');
 var gFormat = require('./format');
@@ -71,6 +9,7 @@ const bitcoinjs = require('bitcoinjs-lib')
 const bs58 = require('bs58');
 const makesheetbinary = require('./makesheet');
 const transbinary = require('./transaction');
+const chinaTime = require('china-time');
 
 var bindMsg = message.bindMsg;
 var seq = 0;
@@ -279,7 +218,8 @@ function query_tran_result(res) {
 		var b = bufferhelp.hexStrToBuffer(s);
 		var m = b.toString('latin1');
 		if (m === 'in pending state') {
-			console.log('Transaction hash=' + bufferhelp.bufToStr(hash_) + ' state=pending\n');
+			// console.log(chinaTime('YYYY-MM-DD HH:mm:ss')); // 2018-02-07 13:08:17
+			console.log('[' + chinaTime('YYYY-MM-DD HH:mm:ss') + '] ' + 'tran_hash=' + bufferhelp.bufToStr(hash_) + ' state=pending\n');
 		} else {
 			console.log('Error: ' + sErr);
 		}
@@ -291,8 +231,8 @@ function query_tran_result(res) {
 			var hi = confirmsg['arg'] & 0xffffffff;
 			var num = (confirmsg['arg'] >> 32) & 0xffff;
 			var idx = (confirmsg['arg'] >> 48) & 0xffff;
-			var state = 'Transaction hash=' + bufferhelp.bufToStr(hash_) + ' confirm=' + num + ' height=' + hi + ' idx=' + idx;
-			console.log('state:', state);
+			var state = '[' + chinaTime('YYYY-MM-DD HH:mm:ss') + '] ' + 'tran_hash=' + bufferhelp.bufToStr(hash_) + ' confirm=' + num + ' height=' + hi + ' idx=' + idx;
+			console.log(state);
 		}
 	}
 }

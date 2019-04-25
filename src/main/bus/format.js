@@ -258,7 +258,7 @@ var udpconfirm = {
     getFmt: function () {
         return [
             ['hash', byte(32)],
-            ['lock_time', 'q']
+            ['args', 'q']
         ]
     }
 }

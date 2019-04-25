@@ -31,9 +31,9 @@ function Wallet(password, filename) {//Wallet
     this.validate = validate;
     this.getAddrFromWallet = getAddrFromWallet;
     this.getWalletFileList = getWalletFileList;
-    this.BIP32 = getBIP32(filename,password);
+    this.BIP32 = getBIP32(filename, password);
     this.cfgdata = readFromFile(filename);
-    this.dhash256=dhash256;
+    this.dhash256 = dhash256;
 }
 
 function WalletData() {
@@ -121,7 +121,7 @@ function genAddr(BIP32) {// generate address
     return addr;
 }
 
-function getBIP32(filename,password) {
+function getBIP32(filename, password) {
     // var filename = this.filename;
     // var password = this.password;
     // console.log('filename:', filename, password);
@@ -200,27 +200,33 @@ function readFromFile(filename, isDefault) {//read file
     }
 }
 
+//私钥对消息进行签名
 function sign(buf) {
     // var hash = bitcoinjs.crypto.sha256(buf);
-    var hash = bitcoinjs.crypto.sha256(bitcoinjs.crypto.sha256(buf));
-    // var hash = bitcoinjs.crypto.hash256(buf);
+    // var hash = bitcoinjs.crypto.sha256(bitcoinjs.crypto.sha256(buf));
+    var hash = bitcoinjs.crypto.hash256(buf);
     // var s=bufferhelp.bufToStr(hash);
     // var hash1=sha256(sha256(buf));
     var wif = this.BIP32.toWIF();
+    // L2JVe4yQvo3Phr2kjh9YUjHxN2d7v4Uc1QjihcLFv8VxyNMoVRyj
     var keyPair = bitcoinjs.ECPair.fromWIF(wif);//sign with prvkey
     var signature = keyPair.sign(hash).toDER(); // ECSignature对象
-    console.log('>>> signature',signature,bufferhelp.bufToStr(signature));
-    //打印公钥以便验证签名:
-    // console.log(keyPair.getPublicKeyBuffer().toString('hex'));
+    console.log('>>> sign', signature, bufferhelp.bufToStr(signature));
+    console.log('>>> payload转换hash:\n',hash.length,bufferhelp.bufToStr(hash));
+    console.log('>>> 公钥:\n',keyPair.getPublicKeyBuffer().toString('hex'));
     return signature;
+
+    //python
+    // var s='3045022100cbac8401605def3d2f44858ee800adbdf52867fdb1378e7ee5b0c273e78fcf89022059d0fbebd0f2a96c0b6386cfa664865b9014f6960e2db4c5367ec0cb8359e7f0'
+    // return bufferhelp.hexStrToBuffer(s);
 }
 
-function dhash256(buf){
+function dhash256(buf) {
     return bitcoinjs.crypto.hash256(bitcoinjs.crypto.hash256(buf));
 }
 
 function verify() {
-    
+
 }
 
 function saveToFile(encrypt, filename, password) {//save file format *.cfg

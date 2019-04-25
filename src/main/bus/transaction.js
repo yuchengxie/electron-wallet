@@ -4,7 +4,7 @@ var bh = require('./bufferhelp');
 function compayloadTran(msg) {
     var a = new Buffer(0);
     var b;
-
+    
     for (var name in msg) {
         if (name === 'version') {
             dftNumberI(msg['version']);//4

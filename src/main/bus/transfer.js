@@ -209,7 +209,7 @@ function getTxnHash(res) {
 	}
 }
 
-function query_tran_result(res) {
+function loop_query_tran(res) {
 	if (res.statusCode == 400) {
 		var payload = message.g_parse(res.body);
 		var msg = new bindMsg(gFormat.udpreject);
@@ -218,10 +218,9 @@ function query_tran_result(res) {
 		var b = bufferhelp.hexStrToBuffer(s);
 		var m = b.toString('latin1');
 		if (m === 'in pending state') {
-			// console.log(chinaTime('YYYY-MM-DD HH:mm:ss')); // 2018-02-07 13:08:17
-			console.log('[' + chinaTime('YYYY-MM-DD HH:mm:ss') + '] ' + 'tran_hash=' + bufferhelp.bufToStr(hash_) + ' state=pending\n');
+			console.log('[' + chinaTime('YYYY-MM-DD HH:mm:ss') + '] ' + ' tran_hash=' + bufferhelp.bufToStr(hash_) + ' state=pending\n');
 		} else {
-			console.log('Error: ' + sErr);
+			console.log('Error: ' + s);
 		}
 	} else if (res.statusCode = 200) {
 		var payload = message.g_parse(res.body);
@@ -292,7 +291,7 @@ function query_sheet(pay_to, from_uocks) {
 								method: 'GET',
 								url: url,
 							}, function (err, res) {
-								query_tran_result(res);
+								loop_query_tran(res);
 							})
 						}, 10000);
 					}

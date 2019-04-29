@@ -28,7 +28,7 @@ function numToBuf(num, isHex, n) {
     s = "0" + s;
   }
   var b1 = new Buffer(n);
-//   var b2 = new Buffer.from(s, "hex");
+  //   var b2 = new Buffer.from(s, "hex");
   var b2 = new Buffer.from(s, "hex").reverse();
   if (b1.length < b2.length) throw "numToBuf err";
   for (var i = 0; i < b2.length; i++) {
@@ -62,7 +62,7 @@ function bufToStr(buf) {
 
 function hexToBuffer(hex) {
   var typedArray = new Uint8Array(
-    hex.match(/[\da-f]{2}/gi).map(function(h) {
+    hex.match(/[\da-f]{2}/gi).map(function (h) {
       return parseInt(h, 16);
     })
   );
@@ -81,6 +81,8 @@ function strToBuffer(str, n) {
   return b1;
 }
 
+// function uock
+
 // function hexStrToBuffer(hex) {
 //     if (hex.length % 2 != 0) {
 //         hex = '0' + hex;
@@ -96,7 +98,7 @@ function hexStrToBuffer(hex) {
     hex = "0" + hex;
   }
   var typedArray = new Uint8Array(
-    hex.match(/[\da-f]{2}/gi).map(function(h) {
+    hex.match(/[\da-f]{2}/gi).map(function (h) {
       return parseInt(h, 16);
     })
   );

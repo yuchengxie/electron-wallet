@@ -14,9 +14,8 @@ const chinaTime = require('china-time');
 var bindMsg = message.bindMsg;
 var seq = 0;
 var pks_num = 0;
-var WEB_SERVER_ADDR = 'http://user1-node.nb-chain.net';
-// var WEB_SERVER_ADDR = 'http://raw0.nb-chain.net';
-
+// var WEB_SERVER_ADDR = 'http://user1-node.nb-chain.net';
+var WEB_SERVER_ADDR = 'http://raw0.nb-chain.net';
 
 //交易测试
 
@@ -89,10 +88,6 @@ function PayFrom() {
 function PayTo() {
 	this.value = 0;
 	this.address = '';
-}
-
-function submit_txn_(buf, submit) {
-
 }
 
 function getWaitSubmit(res) {
@@ -248,7 +243,7 @@ function query_sheet(pay_to, from_uocks) {
 	var buf = prepare_txn1_(pay_to, ext_in, submit, scan_count, min_utxo, max_utxo, sort_flag, from_uocks);
 
 	console.log('>>> 发送数据:', buf, buf.length, bufferhelp.bufToStr(buf))
-	// submit_txn_(buf, submit);
+	// submit_txn_(buf, submit)s
 
 	var URL = WEB_SERVER_ADDR + '/txn/sheets/sheet';
 	dhttp({
@@ -428,8 +423,8 @@ function CHR(n) {
 }
 
 //测试
-var pay_to = '', from_uocks = '';
-var ret = query_sheet(pay_to, from_uocks);
+// var pay_to = '', from_uocks = '';
+// var ret = query_sheet(pay_to, from_uocks);
 
 module.exports = {
 	query_sheet

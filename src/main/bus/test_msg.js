@@ -61,20 +61,20 @@ var bindMsg = message.bindMsg;
 
 
 // 测试info
-// var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
-// dhttp({
-//     method: 'GET',
-//     url: URL,
-// }, function (err, res) {
-//     if (err) throw err;
-//     buf = res.body;
-//     //测试info
-//     payload = buf.slice(24);
-//     console.log('payload:', payload, payload.length);
-//     msg = new bindMsg(gFormat.info);
-//     var b = msg.parse(payload, 0)[1];
-//     console.log('b:', b);
-// })
+var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
+dhttp({
+    method: 'GET',
+    url: URL,
+}, function (err, res) {
+    if (err) throw err;
+    buf = res.body;
+    //测试info
+    payload = buf.slice(24);
+    console.log('payload:', payload, payload.length);
+    msg = new bindMsg(gFormat.info);
+    var b = msg.parse(payload, 0)[1];
+    console.log('b:', b);
+})
 
 //测试utxo
 // var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
@@ -133,75 +133,63 @@ var bindMsg = message.bindMsg;
 // });
 
 
-var url = WEB_SERVER_ADDR + '/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=-1&hi=-2';
-dhttp({
-    url: url,
-    method: 'GET'
-}, function (err, res) {
-    if (err) throw 'getblock err';
-    var buf = res.body;
-    var payload = message.g_parse(buf);
-    var msg = message.parseBlock(payload)[1];
-    console.log('> msg:', msg);
+// var url = WEB_SERVER_ADDR + '/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=-1&hi=-2';
+// dhttp({
+//     url: url,
+//     method: 'GET'
+// }, function (err, res) {
+//     if (err) throw 'getblock err';
+//     var buf = res.body;
+//     var payload = message.g_parse(buf);
+//     var msg = message.parseBlock(payload)[1];
+//     console.log('> msg:', msg);
 
-    var headers = msg['headers'];
-    var blocks = [];
-    for (var idx in headers) {
-        var _block = {};
-        _block.height = msg['heights'][idx];
-        _block.txck = msg['txcks'][idx];
+//     var headers = msg['headers'];
+//     var blocks = [];
+//     for (var idx in headers) {
+//         var _block = {};
+//         _block.height = msg['heights'][idx];
+//         _block.txck = msg['txcks'][idx];
 
-        _block.version = headers[idx]['version'];
-        _block.link_no = headers[idx]['link_no'];
-        _block.prev_block = headers[idx]['prev_block'];
-        _block.merkle_root = headers[idx]['merkle_root'];
-        _block.timestamp = headers[idx]['timestamp'];
-        _block.bits = headers[idx]['bits'];
-        _block.nonce = headers[idx]['nonce'];
+//         _block.version = headers[idx]['version'];
+//         _block.link_no = headers[idx]['link_no'];
+//         _block.prev_block = headers[idx]['prev_block'];
+//         _block.merkle_root = headers[idx]['merkle_root'];
+//         _block.timestamp = headers[idx]['timestamp'];
+//         _block.bits = headers[idx]['bits'];
+//         _block.nonce = headers[idx]['nonce'];
 
 
-        _block.miner = headers[idx]['miner'];
-        _block.txn_count = headers[idx]['txn_count'];
-        _block.hash = getHash(_block);
+//         _block.miner = headers[idx]['miner'];
+//         _block.txn_count = headers[idx]['txn_count'];
+//         _block.hash = getHash(_block);
         
-        blocks.push(_block);
+//         blocks.push(_block);
 
-        console.log('>>> _block:', _block);
-    }
-    console.log('>>> blocks:', blocks);
+//         console.log('>>> _block:', _block);
+//     }
+//     console.log('>>> blocks:', blocks);
 
 
-    // event.sender.send('replyblock', msg);
-})
+//     // event.sender.send('replyblock', msg);
+// })
 
-function getHash(_block) {
-    console.log('_block:', _block);
-    var version = new Buffer(4);
-    version.writeInt32LE(_block['version']);
-    var link_no = new Buffer(4);
-    link_no.writeInt32LE(_block['link_no']);
-    var prev_block = bh.hexStrToBuffer(_block['prev_block']);
-    var merkle_root = bh.hexStrToBuffer(_block['merkle_root']);
-    var timestamp = new Buffer(4);
-    timestamp.writeInt32LE(_block['timestamp']);
-    var bits = new Buffer(4);
-    bits.writeInt32LE(_block['bits']);
-    var nonce = new Buffer(4);
-    nonce.writeInt32LE(_block['nonce']);
-    var b = Buffer.concat([version, link_no, prev_block, merkle_root, timestamp, bits, nonce]);
-    console.log('get b:', b, bh.bufToStr(b));
-    var h = bitcoinjs.crypto.hash256(b);
-    return bh.bufToStr(h);
-}
-
-//node
-// 0100000000000000f04de063acfc21171ab68d064041b2c1fb503094d1e1eb76d6c092955b0d0000db469cfccb1181eafa9a2dbae42f6731fd3bbd8faf23306d1925b129375086ecdedebd5ce10600003b5a1e0a
-
-//python
-// 0100000000000000f04de063acfc21171ab68d064041b2c1fb503094d1e1eb76d6c092955b0d0000db469cfccb1181eafa9a2dbae42f6731fd3bbd8faf23306d1925b129375086ecdedebd5ce10600003b5a1e0a
-
-//node
-// 01000000000000001a21368ee9b51cd54e39219ca53d3ad0a0a7589147041876a9557fc22f090000a2da7162a2366b18320483d3e8a7a201f635f47644be5caced90d5f054ee868d8ae6bd5ce106000035c33307
-
-//python
-// 01000000000000001a21368ee9b51cd54e39219ca53d3ad0a0a7589147041876a9557fc22f090000a2da7162a2366b18320483d3e8a7a201f635f47644be5caced90d5f054ee868d8ae6bd5ce106000035c33307
+// function getHash(_block) {
+//     console.log('_block:', _block);
+//     var version = new Buffer(4);
+//     version.writeInt32LE(_block['version']);
+//     var link_no = new Buffer(4);
+//     link_no.writeInt32LE(_block['link_no']);
+//     var prev_block = bh.hexStrToBuffer(_block['prev_block']);
+//     var merkle_root = bh.hexStrToBuffer(_block['merkle_root']);
+//     var timestamp = new Buffer(4);
+//     timestamp.writeInt32LE(_block['timestamp']);
+//     var bits = new Buffer(4);
+//     bits.writeInt32LE(_block['bits']);
+//     var nonce = new Buffer(4);
+//     nonce.writeInt32LE(_block['nonce']);
+//     var b = Buffer.concat([version, link_no, prev_block, merkle_root, timestamp, bits, nonce]);
+//     console.log('get b:', b, bh.bufToStr(b));
+//     var h = bitcoinjs.crypto.hash256(b);
+//     return bh.bufToStr(h);
+// }

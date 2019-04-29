@@ -9,7 +9,7 @@ const R = {
     Transfer:'transfer',
 }
 
-const Index=R.UTXO;
+const Index=R.Wallet_Info;
 
 var navhome = document.getElementById('nav_home');
 var navwallet = document.getElementById('nav_wallet_create');

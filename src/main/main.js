@@ -146,6 +146,7 @@ ipcMain.on('info', function (event, data) {
             var buf = res.body;
             var payload = message.g_parse(buf);
             var msg = message.parseInfo(payload)[1];
+            
             msg['account'] = bh.hexToBuffer(msg['account']).toString('latin1');
             //total utxo
             msg['total'] = getTotal(msg);

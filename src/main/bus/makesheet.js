@@ -70,7 +70,12 @@ function compayload(msg) {
                 // 变长字符串
                 if (l_addr < 0xFD) {
                     dftNumber1(l_addr);
-                    b = new Buffer(pay.address);
+                    if (typeof pay.address == 'string') {
+                        b = new Buffer(pay.address);
+                    } else {//bytes
+                        b = pay.address;
+                    }
+                    // b = new Buffer(pay.address);
                     a = Buffer.concat([a, b]);
                 }
             }
@@ -86,20 +91,23 @@ function compayload(msg) {
 
     function dftNumberH(n) {
         b = new Buffer(2);
-        b.writeUInt8(n)
+        // b.writeUInt8(n)
+        b.writeInt16LE(n);
         a = Buffer.concat([a, b]);
     }
 
     function dftNumberI(n) {
         b = new Buffer(4);
         //n转16进制buffer
-        b.writeUInt16LE(n);
+        // b.writeUInt16LE(n);
+        b.writeInt32LE(n);
         a = Buffer.concat([a, b]);
     }
 
     function dftNumberq(n) {
         b = new Buffer(8);
         b.writeInt32LE(n);
+        
         a = Buffer.concat([a, b]);
     }
     return a;
@@ -117,6 +125,6 @@ function toBuffer(hex) {
     return buffer;
 }
 
-module.exports={
+module.exports = {
     compayload
 }

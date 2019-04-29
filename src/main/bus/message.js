@@ -261,6 +261,7 @@ function standard(buf, fmt, offset, arrayLen) {//standard format
     }
     if (fmt == 'q') {
         return [offset + 8, bufToNumer(buf.slice(offset, offset + 8).reverse())];
+        // return [offset+8,buf.slice(offset,offset+8).reverse()];
     }
     if (fmt == 'S') {   //fixed-len-str
         var len = parseInt(arrayLen.split('_')[1]);
@@ -277,8 +278,8 @@ function standard(buf, fmt, offset, arrayLen) {//standard format
 
     }
 }
-
-function bufToNumer(buf) {
+ 
+function  bufToNumer(buf) {
     var t = 0;
     for (var i = 0; i < buf.length; i++) {
         t += parseInt(buf[i], 10) * Math.pow(256, buf.length - i - 1);

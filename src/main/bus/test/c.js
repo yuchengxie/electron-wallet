@@ -44,14 +44,18 @@
 // }
 
 
-var a = new Buffer('abc123').reverse();
-var t = 0;
-for (var i = 0; i < a.length; i++) {
-  var b = a[i];
-  t += b << (8 * i);
+// var a = new Buffer('abc123').reverse();
+// var t = 0;
+// for (var i = 0; i < a.length; i++) {
+//   var b = a[i];
+//   t += b << (8 * i);
 
-  console.log(b);
-  console.log(t);
-}
+//   console.log(b);
+//   console.log(t);
+// }
 // console.log(t);
+// b[0] + (b[1] << 8) + ((b[2] & 0x0f) << 16)
+var b = Buffer.from('\x01\x02\x13');
+var num = b[0] + (b[1] << 8) + ((b[2] & 0xff)<<16)
+console.log(num);
 

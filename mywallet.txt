@@ -5,6 +5,8 @@
 // 1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV
 //Total unspent: 418.199924
 
+ b[0] + (b[1] << 8) + ((b[2] & 0x0f) << 16)
+
 //查看最后一个区块
 pw block 1-
 pw block 1- 2- 3- 4- 5- 6-

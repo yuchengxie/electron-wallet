@@ -221,13 +221,15 @@ function loop_query_tran(res) {
 		var payload = message.g_parse(res.body);
 		var msg = new bindMsg(gFormat.udpconfirm);
 		var confirmsg = msg.parse(payload, 0)[1];
-		if (confirmsg.hash == bufferhelp.bufToStr(hash_)) {
-			var hi = confirmsg['arg'] & 0xffffffff;
-			var num = (confirmsg['arg'] >> 32) & 0xffff;
-			var idx = (confirmsg['arg'] >> 48) & 0xffff;
-			var state = '[' + chinaTime('YYYY-MM-DD HH:mm:ss') + '] ' + 'tran_hash=' + bufferhelp.bufToStr(hash_) + ' confirm=' + num + ' height=' + hi + ' idx=' + idx;
-			console.log(state);
-		}
+		// if (confirmsg.hash == bufferhelp.bufToStr(hash_)) {
+		// Transaction state: confirm=106, height=35208, index=1
+		var args = confirmsg['args'];
+		var hi = (args & 0xffffffff);
+		var num = ((args >> 32) & 0xffff);
+		var idx = ((args >> 48) & 0xffff);
+		var state = '[' + chinaTime('YYYY-MM-DD HH:mm:ss') + '] ' + 'tran_hash=' + bufferhelp.bufToStr(hash_) + ' confirm=' + num + ' height=' + hi + ' idx=' + idx;
+		console.log(state);
+		// }
 	}
 }
 
@@ -422,9 +424,19 @@ function CHR(n) {
 	return buf;
 }
 
-//测试
+// 测试
 // var pay_to = '', from_uocks = '';
 // var ret = query_sheet(pay_to, from_uocks);
+var txn_hash = '5a710aae7c5fba90a1459e70cdcaece4537627a12f4eb3d619f2e44c317f7afb'
+var url = WEB_SERVER_ADDR + '/txn/sheets/state?hash=' + txn_hash;
+setInterval(() => {
+	dhttp({
+		method: 'GET',
+		url: url,
+	}, function (err, res) {
+		loop_query_tran(res);
+	})
+}, 100);
 
 module.exports = {
 	query_sheet

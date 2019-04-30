@@ -146,12 +146,29 @@ ipcMain.on('info', function (event, data) {
             var buf = res.body;
             var payload = message.g_parse(buf);
             var msg = message.parseInfo(payload)[1];
-            
-            msg['account'] = bh.hexToBuffer(msg['account']).toString('latin1');
-            //total utxo
-            msg['total'] = getTotal(msg);
-            console.log('> info msg:', msg);
-            event.sender.send('replyinfo', msg);
+            var msg1 = {};
+            msg1.account = bh.hexToBuffer(msg['account']).toString('latin1');
+            msg1.timestamp = msg['timestamp'];
+            msg1.link_no = msg['link_no'];
+            var arrfound = [];
+            var total = 0;
+            for (var i = 0; i < msg['found'].length; i++) {
+                var found_item = {};
+                var m = msg['found'][i];
+                var height = m['height'];
+                var value = m['value'];
+                var uock = m['uock'];
+                //handle uock
+                found_item.uock = uock;
+                found_item.height = height;
+                found_item.value = value;
+                arrfound.push(found_item);
+                total += value;
+            }
+            msg1.found = arrfound;
+            msg1.total = total;
+            console.log('> info msg:', msg1);
+            event.sender.send('replyinfo', msg1);
         }
     )
 })
@@ -171,12 +188,10 @@ ipcMain.on('utxo', function (event, data) {
             if (err) throw 'getutxo err';
             console.log('> utxo res:', res.body, res.body.length);
             var buf = res.body;
-
             var payload = message.g_parse(buf);
             console.log('> res:', payload, payload.length);
             var msg = message.parseUtxo(payload)[1];
             console.log('> msg:', msg);
-
             event.sender.send('replyutxo', msg);
         }
     )
@@ -203,16 +218,15 @@ function getHash(_block) {
     var nonce = new Buffer(4);
     nonce.writeInt32LE(_block['nonce']);
     var b = Buffer.concat([version, link_no, prev_block, merkle_root, timestamp, bits, nonce]);
-    console.log('get b:', b, bh.bufToStr(b));
     var h = bitcoinjs.crypto.hash256(b);
     return bh.bufToStr(h);
 }
 
 function getTotal(msg) {
     var total = 0;
-    var found=msg['found'];
-    for (var i=0;i<found.length;i++) {
-        total+=found[i]['value'];
+    var found = msg['found'];
+    for (var i = 0; i < found.length; i++) {
+        total += found[i]['value'];
     }
     return total;
 }

@@ -79,7 +79,8 @@ var byte = (n) => {
 var found = {
     getFmt: function () {
         return [
-            ['uock', 'q'],
+            // ['uock', 'q'],
+            ['uock', 'uq'],
             ['value', 'q'],
             ['height', 'I'],
         ]
@@ -182,7 +183,8 @@ var pay_to = {
 
 var last_uocks = {
     getFmt: function () {
-        return 'q[]';
+        return 'uq[]';
+        // return 'q[]';
     }
 }
 
@@ -194,10 +196,12 @@ var makesheet = {
             ['pay_from', pay_froms],
             ['pay_to', pay_tos],
             ['scan_count', 'H'],
-            ['min_utxo', 'q'],
-            ['max_utxo', 'q'],
+            // ['min_utxo', 'q'],
+            ['min_utxo', 'uq'],
+            // ['max_utxo', 'q'],
+            ['max_utxo', 'uq'],
             ['sort_flag', 'I'],
-            ['last_uocks', 'q[]'],
+            ['last_uocks', 'uq[]'],
         ]
     }
 }
@@ -221,7 +225,8 @@ var orgsheet = {
         return [
             ['sequence', 'I'],
             ['pks_out', varStrLists],
-            ['last_uocks', 'q[]'],
+            // ['last_uocks', 'q[]'],
+            ['last_uocks', 'uq[]'],
             ['version', 'I'],
             ['tx_in', tx_ins],
             ['tx_out', tx_outs],
@@ -258,7 +263,8 @@ var udpconfirm = {
     getFmt: function () {
         return [
             ['hash', byte(32)],
-            ['args', 'q']
+            // ['args', 'q']
+            ['args', 'uq']
         ]
     }
 }

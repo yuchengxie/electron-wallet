@@ -249,7 +249,6 @@ function prepare_txn2_(protocol_id, str_list, scan_count, min_utxo, max_utxo, so
 	pay_to1.value = 0;
 	pay_to1.address = ex_msg_buf;
 	// pay_to1.address = bh.bufToStr(ex_msg_buf);
-	// pay_to1.address = bh.bufToStr(ex_msg_buf);
 	pay_to.push(pay_to1);
 
 	makesheet = new MakeSheet();
@@ -273,9 +272,7 @@ function getmakesheetbuf(msg) {
 	var command = new Buffer(12);
 	command.write('makesheet', 0);
 	console.log('> msg:', msg);
-
 	var payload = makesheetbinary.compayload(msg);
-
 	console.log('makesheet to payload buf\n:', payload, bh.bufToStr(payload), payload.length);
 	//16-20 payload length
 	var len_buf = new Buffer(4);

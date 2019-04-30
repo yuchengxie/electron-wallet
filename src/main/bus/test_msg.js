@@ -68,13 +68,41 @@ dhttp({
 }, function (err, res) {
     if (err) throw err;
     buf = res.body;
-    //测试info
-    payload = buf.slice(24);
-    console.log('payload:', payload, payload.length);
-    msg = new bindMsg(gFormat.info);
-    var b = msg.parse(payload, 0)[1];
-    console.log('b:', b);
+    var payload = message.g_parse(buf);
+    var msg = message.parseInfo(payload)[1];
+    var msg1 = {};
+    msg1.account = bh.hexToBuffer(msg['account']).toString('latin1');
+    msg1.timestamp = msg['timestamp'];
+    msg1.link_no = msg['link_no'];
+    var arrfound = [];
+    var total = 0;
+    for (var i = 0; i < msg['found'].length; i++) {
+        var found_item = {};
+        var m = msg['found'][i];
+        var height = m['height'];
+        var value = m['value'];
+        var uock = m['uock'];
+        found_item.uock = uock;
+        found_item.height = height;
+        found_item.value = value;
+        arrfound.push(found_item);
+        total += value;
+    }
+    msg1.found = arrfound;
+    msg1.total = total;
+    console.log('> info msg:', msg1);
+    
+    // event.sender.send('replyinfo', msg1);
 })
+
+function getTotal(msg) {
+    var total = 0;
+    var found = msg['found'];
+    for (var i = 0; i < found.length; i++) {
+        total += found[i]['value'];
+    }
+    return total;
+}
 
 //测试utxo
 // var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
@@ -163,7 +191,7 @@ dhttp({
 //         _block.miner = headers[idx]['miner'];
 //         _block.txn_count = headers[idx]['txn_count'];
 //         _block.hash = getHash(_block);
-        
+
 //         blocks.push(_block);
 
 //         console.log('>>> _block:', _block);

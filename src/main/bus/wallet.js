@@ -31,9 +31,14 @@ function Wallet(password, filename) {//Wallet
     this.validate = validate;
     this.getAddrFromWallet = getAddrFromWallet;
     this.getWalletFileList = getWalletFileList;
+    this.dhash256 = dhash256;
+    if (filename == undefined || password == undefined) {
+        //create filepath
+        // isFileExist();
+        return;
+    };
     this.BIP32 = getBIP32(filename, password);
     this.cfgdata = readFromFile(filename);
-    this.dhash256 = dhash256;
 }
 
 function WalletData() {
@@ -126,6 +131,7 @@ function getBIP32(filename, password) {
     // var password = this.password;
     // console.log('filename:', filename, password);
     if (password == undefined || filename == undefined) throw 'wallet error';
+
     var data = readFromFile(filename);
     var encrypt_prvkey = data['prvkey'];
     var s = AES.Decrypt(encrypt_prvkey, password);
@@ -177,8 +183,7 @@ function validate() {
 }
 
 function readFromFile(filename, isDefault) {//read file
-    // console.log('isDefault:', isDefault);
-    // console.log('filename:', filename);
+    // mkdirsSync(fp);
     var dir = '';
     if (isDefault == true || filename == default_file) {
         dir = default_fp;
@@ -188,37 +193,26 @@ function readFromFile(filename, isDefault) {//read file
     if (!filename.includes('.cfg')) {
         filename = filename + '.cfg';
     }
-    // console.log('dir:', dir);
-    // console.log('readFromFile filename:', filename);
     const data = fs.readFileSync(dir + filename, "utf-8");//sync read
-    // console.log('readFromFile data:', data);
     if (data && data.length > 0) {
         return JSON.parse(data);
     } else {
-        // throw(filename+' data err');
         return null;
     }
 }
 
 //私钥对消息进行签名
 function sign(buf) {
-    // var hash = bitcoinjs.crypto.sha256(buf);
-    // var hash = bitcoinjs.crypto.sha256(bitcoinjs.crypto.sha256(buf));
     var hash = bitcoinjs.crypto.hash256(buf);
-    // var s=bufferhelp.bufToStr(hash);
-    // var hash1=sha256(sha256(buf));
     var wif = this.BIP32.toWIF();
     // L2JVe4yQvo3Phr2kjh9YUjHxN2d7v4Uc1QjihcLFv8VxyNMoVRyj
     var keyPair = bitcoinjs.ECPair.fromWIF(wif);//sign with prvkey
     var signature = keyPair.sign(hash).toDER(); // ECSignature对象
+    
     console.log('>>> sign', signature, bufferhelp.bufToStr(signature));
-    console.log('>>> payload转换hash:\n',hash.length,bufferhelp.bufToStr(hash));
-    console.log('>>> 公钥:\n',keyPair.getPublicKeyBuffer().toString('hex'));
+    console.log('>>> payload转换hash:\n', hash.length, bufferhelp.bufToStr(hash));
+    console.log('>>> 公钥:\n', keyPair.getPublicKeyBuffer().toString('hex'));
     return signature;
-
-    //python
-    // var s='3045022100cbac8401605def3d2f44858ee800adbdf52867fdb1378e7ee5b0c273e78fcf89022059d0fbebd0f2a96c0b6386cfa664865b9014f6960e2db4c5367ec0cb8359e7f0'
-    // return bufferhelp.hexStrToBuffer(s);
 }
 
 function dhash256(buf) {
@@ -241,9 +235,9 @@ function saveToFile(encrypt, filename, password) {//save file format *.cfg
         "password": password,
         "address": address == undefined ? '' : address,
     }
+    
     mkdirs(fp, function () {
         data = JSON.stringify(data);
-
         fs.writeFile(fp + filename, data, (err) => {
             if (err) {
                 throw Error('write file err');

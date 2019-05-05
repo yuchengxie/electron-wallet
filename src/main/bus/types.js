@@ -12,7 +12,6 @@ function TYPES() {
     this.ARRAY='array';
 }
 
-
 function getType(obj) {
     if (typeof obj != 'object') {
         return (typeof obj);

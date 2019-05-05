@@ -221,3 +221,7 @@ function getTotal(msg) {
 //     var h = bitcoinjs.crypto.hash256(b);
 //     return bh.bufToStr(h);
 // }
+
+const Wallet=require('./wallet');
+
+var wallet = new Wallet('xieyc', 'default.cfg');

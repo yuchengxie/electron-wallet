@@ -1,6 +1,6 @@
 
-// const bitcoin = require("bitcoinjs-lib");
-// const bh = require("../bufferhelp");
+const bitcoin = require("bitcoinjs-lib");
+const bh = require("../bufferhelp");
 
 
 // var message_s = "010000000131a66dd0de9f7f68936a1058ecc1c6c623018f73deca93744b4124ed9fb6aa0f010000002876b8230000db83cf42e02199d4fa29d14a197a167ade519298f0c2f98ec5478092497bcd5c00b7acffffffff0200e1f505000000002876b8230000e5c7b20d5b5037f86e9861cd8795be42e8093c61bd36256a2b5a22df6508a8ba00b7aca0ff2d6f090000002876b8230000db83cf42e02199d4fa29d14a197a167ade519298f0c2f98ec5478092497bcd5c00b7ac0000000001000000";
@@ -55,7 +55,11 @@
 // }
 // console.log(t);
 // b[0] + (b[1] << 8) + ((b[2] & 0x0f) << 16)
-var b = Buffer.from('\x01\x02\x13');
-var num = b[0] + (b[1] << 8) + ((b[2] & 0xff)<<16)
-console.log(num);
+// var b = Buffer.from('\x01\x02\x13');
+// var num = b[0] + (b[1] << 8) + ((b[2] & 0xff)<<16)
+// console.log(num);
+
+// var b1=bitcoin.script.fromASM('76b8230000db83cf42e02199d4fa29d14a197a167ade519298f0c2f98ec5478092497bcd5c00b7ac');
+var s='76b8230000db83cf42e02199d4fa29d14a197a167ade519298f0c2f98ec5478092497bcd5c00b7ac';
+// payments
 

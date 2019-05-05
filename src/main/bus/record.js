@@ -50,6 +50,7 @@ function record(content, hash, proof = false) {
 		sn = query_sheet_ex(0, ["MSG", where, content], true);
 	}
 
+	//todo
 	// if (sn) {
 
 	// }

@@ -1,0 +1,1 @@
+const opcodes = require('./opcodes');

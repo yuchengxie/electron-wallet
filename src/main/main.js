@@ -9,8 +9,13 @@ var WEB_SERVER_ADDR = 'http://user1-node.nb-chain.net';
 // var WEB_SERVER_ADDR = 'http://raw0.nb-chain.net';
 
 //set default wallet
+
+// var wallet =new Wallet();
+
+// wallet.init();
+
 var wallet = new Wallet('xieyc', 'default.cfg');
-// wallet = wallet.init();
+// var wallet ;
 
 ipcMain.on('getwallets', function (event, data) {
     var list = wallet.getWalletFileList();

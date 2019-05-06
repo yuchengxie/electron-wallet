@@ -43,14 +43,11 @@ ipcMain.on('changewallet', function (event, data) {
 ipcMain.on('save', function (event, data) {
     console.log(data);
     if (data.length == 3) {
-        // wallet = new Wallet(data[1], data[2]);
         wallet = new Wallet(data[1], data[2]);
-        // console.log('>>> save wallet:',wallet);
         var addr = wallet.save(data[0]);
         console.log(addr);
         if (addr) {
             event.sender.send('replysave', [addr, data[2]]);
-            // event.sender.send('replysave', [addr, 'default.cfg']);
         }
     } else {
         throw Error('import wallet data error');

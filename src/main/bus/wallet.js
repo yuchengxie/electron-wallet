@@ -20,8 +20,8 @@ var address;
 
 function Wallet(password, filename, type = true) {//Wallet
     this.password = password;
-    // this.filename = filename == undefined ? default_file : filename;
-    this.filename=default_file;
+    this.filename = filename == undefined ? default_file : filename;
+    // this.filename=default_file;
     // this.init = init;
     this.create = create;
     this.save = save;
@@ -37,14 +37,16 @@ function Wallet(password, filename, type = true) {//Wallet
     this.cfgdata = '';
     console.log('filelegal out coming ...');
     mkdirsSync(fp);
-    if (fileLegal(this.filename, type)) {
+    // if (fileLegal(this.filename, type)) {
+    // var filepath = default_fp + default_file;
+    if (fileLegal(default_file, type)) {
         console.log('filelegal in coming ...');
-        this.BIP32 = getBIP32(this.filename);
-        this.cfgdata = readFromFile(this.filename);
+        this.BIP32 = getBIP32(default_file);
+        this.cfgdata = readFromFile(default_file);
     }
 }
 
-new Wallet('123456','aaa.cfg');
+// new Wallet('123456','aaa.cfg');
 
 function fileLegal(filename, type) {
     var dir = '';

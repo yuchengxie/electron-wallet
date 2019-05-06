@@ -37,8 +37,6 @@ function Wallet(password, filename, type = true) {//Wallet
     this.cfgdata = '';
     console.log('filelegal out coming ...');
     mkdirsSync(fp);
-    // if (fileLegal(this.filename, type)) {
-    // var filepath = default_fp + default_file;
     if (fileLegal(default_file, type)) {
         console.log('filelegal in coming ...');
         this.BIP32 = getBIP32(default_file);

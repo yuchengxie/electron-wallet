@@ -10,11 +10,11 @@ var WEB_SERVER_ADDR = 'http://user1-node.nb-chain.net';
 
 //set default wallet
 
-// var wallet =new Wallet();
+var wallet = new Wallet();
 
 // wallet.init();
 
-var wallet = new Wallet('xieyc', 'default.cfg');
+// var wallet = new Wallet('xieyc', 'default.cfg');
 // var wallet ;
 
 ipcMain.on('getwallets', function (event, data) {
@@ -43,11 +43,14 @@ ipcMain.on('changewallet', function (event, data) {
 ipcMain.on('save', function (event, data) {
     console.log(data);
     if (data.length == 3) {
+        // wallet = new Wallet(data[1], data[2]);
         wallet = new Wallet(data[1], data[2]);
+        // console.log('>>> save wallet:',wallet);
         var addr = wallet.save(data[0]);
         console.log(addr);
         if (addr) {
             event.sender.send('replysave', [addr, data[2]]);
+            // event.sender.send('replysave', [addr, 'default.cfg']);
         }
     } else {
         throw Error('import wallet data error');
@@ -131,12 +134,19 @@ ipcMain.on('info', function (event, data) {
     let before = 0;
     let address = '';
     var addr = data;
-    console.log('>>> pass address:', address);
+    console.log('wallet:',wallet);
     if (addr.length == 0) {
-        //if empty,default local wallet address
+        if (wallet.BIP32 == null) {
+            console.log('default wallet not exist,need create a wallet');
+            return;
+        }
+        //default wallet address
+        console.log('>>> ready read wallet address');
         addr = wallet.getAddrFromWallet();
+        console.log('>>> addr:',addr);
+        console.log('>>> wallet:',wallet);
     }
-    console.log('url addr:', addr);
+    console.log('>>> url addr:', addr);
 
     // var url = 'http://raw0.nb-chain.net/txn/state/account?addr=' + addr + '&uock=' + before + '&uock2=' + after;
     // var url = WEB_SERVER_ADDR + '/txn/state/account?addr=' + addr + '&uock=' + before + '&uock2=' + after;

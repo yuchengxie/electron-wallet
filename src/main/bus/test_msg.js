@@ -61,48 +61,48 @@ var bindMsg = message.bindMsg;
 
 
 // 测试info
-var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
-dhttp({
-    method: 'GET',
-    url: URL,
-}, function (err, res) {
-    if (err) throw err;
-    buf = res.body;
-    var payload = message.g_parse(buf);
-    var msg = message.parseInfo(payload)[1];
-    var msg1 = {};
-    msg1.account = bh.hexToBuffer(msg['account']).toString('latin1');
-    msg1.timestamp = msg['timestamp'];
-    msg1.link_no = msg['link_no'];
-    var arrfound = [];
-    var total = 0;
-    for (var i = 0; i < msg['found'].length; i++) {
-        var found_item = {};
-        var m = msg['found'][i];
-        var height = m['height'];
-        var value = m['value'];
-        var uock = m['uock'];
-        found_item.uock = uock;
-        found_item.height = height;
-        found_item.value = value;
-        arrfound.push(found_item);
-        total += value;
-    }
-    msg1.found = arrfound;
-    msg1.total = total;
-    console.log('> info msg:', msg1);
+// var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
+// dhttp({
+//     method: 'GET',
+//     url: URL,
+// }, function (err, res) {
+//     if (err) throw err;
+//     buf = res.body;
+//     var payload = message.g_parse(buf);
+//     var msg = message.parseInfo(payload)[1];
+//     var msg1 = {};
+//     msg1.account = bh.hexToBuffer(msg['account']).toString('latin1');
+//     msg1.timestamp = msg['timestamp'];
+//     msg1.link_no = msg['link_no'];
+//     var arrfound = [];
+//     var total = 0;
+//     for (var i = 0; i < msg['found'].length; i++) {
+//         var found_item = {};
+//         var m = msg['found'][i];
+//         var height = m['height'];
+//         var value = m['value'];
+//         var uock = m['uock'];
+//         found_item.uock = uock;
+//         found_item.height = height;
+//         found_item.value = value;
+//         arrfound.push(found_item);
+//         total += value;
+//     }
+//     msg1.found = arrfound;
+//     msg1.total = total;
+//     console.log('> info msg:', msg1);
     
-    // event.sender.send('replyinfo', msg1);
-})
+//     // event.sender.send('replyinfo', msg1);
+// })
 
-function getTotal(msg) {
-    var total = 0;
-    var found = msg['found'];
-    for (var i = 0; i < found.length; i++) {
-        total += found[i]['value'];
-    }
-    return total;
-}
+// function getTotal(msg) {
+//     var total = 0;
+//     var found = msg['found'];
+//     for (var i = 0; i < found.length; i++) {
+//         total += found[i]['value'];
+//     }
+//     return total;
+// }
 
 //测试utxo
 // var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
@@ -224,4 +224,11 @@ function getTotal(msg) {
 
 const Wallet=require('./wallet');
 
-var wallet = new Wallet('xieyc', 'default.cfg');
+// var wallet = new Wallet('xieyc', 'default.cfg');
+var wallet =new Wallet();
+wallet = new Wallet();
+wallet.getAddrFromWallet();
+console.log('wallet:',wallet);
+var a=1;
+// wallet = new Wallet(, data[2]);
+

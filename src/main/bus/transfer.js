@@ -426,8 +426,8 @@ function CHR(n) {
 }
 
 // 测试
-var pay_to = '', from_uocks = '';
-var ret = query_sheet(pay_to, from_uocks);
+// var pay_to = '', from_uocks = '';
+// var ret = query_sheet(pay_to, from_uocks);
 // var txn_hash = '5a710aae7c5fba90a1459e70cdcaece4537627a12f4eb3d619f2e44c317f7afb'
 // var url = WEB_SERVER_ADDR + '/txn/sheets/state?hash=' + txn_hash;
 // setInterval(() => {

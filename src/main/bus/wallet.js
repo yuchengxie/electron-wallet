@@ -18,10 +18,11 @@ var default_file = 'default.cfg';
 var pubkey;
 var address;
 
-function Wallet(password, filename) {//Wallet
+function Wallet(password, filename, type = true) {//Wallet
     this.password = password;
-    this.filename = filename;
-    this.init = init;
+    // this.filename = filename == undefined ? default_file : filename;
+    this.filename=default_file;
+    // this.init = init;
     this.create = create;
     this.save = save;
     this.sign = sign;
@@ -32,13 +33,48 @@ function Wallet(password, filename) {//Wallet
     this.getAddrFromWallet = getAddrFromWallet;
     this.getWalletFileList = getWalletFileList;
     this.dhash256 = dhash256;
-    if (filename == undefined || password == undefined) {
-        //create filepath
-        // isFileExist();
-        return;
-    };
-    this.BIP32 = getBIP32(filename, password);
-    this.cfgdata = readFromFile(filename);
+    this.BIP32 = null;
+    this.cfgdata = '';
+    console.log('filelegal out coming ...');
+    mkdirsSync(fp);
+    if (fileLegal(this.filename, type)) {
+        console.log('filelegal in coming ...');
+        this.BIP32 = getBIP32(this.filename);
+        this.cfgdata = readFromFile(this.filename);
+    }
+}
+
+new Wallet('123456','aaa.cfg');
+
+function fileLegal(filename, type) {
+    var dir = '';
+    if (type == true || filename == default_file) {
+        dir = default_fp;
+    } else {
+        dir = fp;
+    }
+    if (filename && !filename.includes('.cfg')) {
+        filename = filename + '.cfg';
+    }
+    //file exits
+    var isFileExist = fs.existsSync(dir + filename);
+    if (isFileExist) {
+        var datacfg = fs.readFileSync(dir + filename, "utf-8");//sync read
+        if (datacfg && datacfg.length > 0) {
+            return true;
+        } else {
+            console.log('read file cfg data illegal,maybe empty');
+            return false;
+        }
+    } else {
+        console.log('default.cfg not exist,need create a wallet');
+        return false;
+    }
+    return false;
+}
+
+function isFileExist(filename) {
+    fs.existsSync(filename);
 }
 
 function WalletData() {
@@ -126,15 +162,13 @@ function genAddr(BIP32) {// generate address
     return addr;
 }
 
-function getBIP32(filename, password) {
-    // var filename = this.filename;
-    // var password = this.password;
-    // console.log('filename:', filename, password);
-    if (password == undefined || filename == undefined) throw 'wallet error';
-
+function getBIP32(filename) {
+    if (filename == undefined) throw 'wallet error';
     var data = readFromFile(filename);
     var encrypt_prvkey = data['prvkey'];
-    var s = AES.Decrypt(encrypt_prvkey, password);
+    var pwd = data['password'];
+    var s = AES.Decrypt(encrypt_prvkey, pwd);
+    // var s = AES.Decrypt(encrypt_prvkey, password);
     var n = bs58check.decode(s.slice(2));
     var prvKeyBuf = n.slice(1, 33);
     var BIP32 = bip32.fromPrivateKey(prvKeyBuf, new Buffer(32));
@@ -157,11 +191,10 @@ function getWalletData() {
 
 function getAddrFromWallet() {
     var filename = this.filename;
-    var password = this.password;
-    console.log('filename:', filename, password);
-    if (password == undefined || filename == undefined) throw 'wallet error';
     var data = readFromFile(filename);
     var encrypt_prvkey = data['prvkey'];
+    var password = data['password'];
+    this.password = password;
     var s = AES.Decrypt(encrypt_prvkey, password);
     var n = bs58check.decode(s.slice(2));
     var prvKeyBuf = n.slice(1, 33);
@@ -208,7 +241,7 @@ function sign(buf) {
     // L2JVe4yQvo3Phr2kjh9YUjHxN2d7v4Uc1QjihcLFv8VxyNMoVRyj
     var keyPair = bitcoinjs.ECPair.fromWIF(wif);//sign with prvkey
     var signature = keyPair.sign(hash).toDER(); // ECSignature对象
-    
+
     console.log('>>> sign', signature, bufferhelp.bufToStr(signature));
     console.log('>>> payload转换hash:\n', hash.length, bufferhelp.bufToStr(hash));
     console.log('>>> 公钥:\n', keyPair.getPublicKeyBuffer().toString('hex'));
@@ -235,7 +268,7 @@ function saveToFile(encrypt, filename, password) {//save file format *.cfg
         "password": password,
         "address": address == undefined ? '' : address,
     }
-    
+
     mkdirs(fp, function () {
         data = JSON.stringify(data);
         fs.writeFile(fp + filename, data, (err) => {
@@ -271,7 +304,7 @@ function mkdirsSync(dirname) {
     } else {
         if (mkdirsSync(path.dirname(dirname))) {
             fs.mkdirSync(dirname);
-            return false;
+            return true;
         }
     }
 }

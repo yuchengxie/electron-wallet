@@ -4,6 +4,7 @@ const Wallet = require('./bus/wallet');
 const message = require('./bus/message')
 const bh = require('./bus/bufferhelp');
 const bitcoinjs = require('bitcoinjs-lib');
+const opscript=require('./bus/op/script');
 
 var WEB_SERVER_ADDR = 'http://user1-node.nb-chain.net';
 // var WEB_SERVER_ADDR = 'http://raw0.nb-chain.net';
@@ -219,6 +220,7 @@ ipcMain.on('utxo', function (event, data) {
             var payload = message.g_parse(buf);
             console.log('> res:', payload, payload.length);
             var msg = message.parseUtxo(payload)[1];
+            msg=utxoScript(msg);
             console.log('> msg:', msg);
             event.sender.send('replyutxo', msg);
         }
@@ -257,4 +259,18 @@ function getTotal(msg) {
         total += found[i]['value'];
     }
     return total;
+}
+
+function utxoScript(msg) {
+    var txns = msg['txns'];
+    for (var i = 0; i < txns.length; i++) {
+        var tx_outs = txns[i]['tx_out'];
+        for (var j = 0; j < tx_outs.length; j++) {
+            var pk_script = tx_outs[j]['pk_script'];
+            // var t = new Tokenizer(s)._script;
+            var s = opscript._process(pk_script);
+            tx_outs[j]['pk_script'] = s;
+        }
+    }
+    return msg;
 }

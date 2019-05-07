@@ -12,7 +12,7 @@ var _expand_verify;
 function Tokenizer(pk_script, expand_verify = false) {
     _expand_verify = expand_verify;
 
-    this._script=_process(pk_script);
+    // this._script = _process(pk_script);
 }
 
 // 76b8230000e5c7b20d5b5037f86e9861cd8795be42e8093c61bd36256a2b5a22df6508a8ba00b7ac
@@ -104,3 +104,9 @@ function ORD(ch) {
 // var s = '76b8230000e5c7b20d5b5037f86e9861cd8795be42e8093c61bd36256a2b5a22df6508a8ba00b7ac';
 // var t = new Tokenizer(s)._script;
 // console.log('t:',t);
+
+
+module.exports = {
+    // Tokenizer
+    _process
+}

@@ -7,8 +7,10 @@ const bh = require('./bufferhelp');
 const sha256 = require('js-sha256');
 const bs58 = require('bs58')
 const bitcoinjs = require('bitcoinjs-lib');
+const opscript = require('./op/script');
 var WEB_SERVER_ADDR = 'http://user1-node.nb-chain.net';
 var bindMsg = message.bindMsg;
+
 
 
 //binary测试
@@ -91,7 +93,7 @@ var bindMsg = message.bindMsg;
 //     msg1.found = arrfound;
 //     msg1.total = total;
 //     console.log('> info msg:', msg1);
-    
+
 //     // event.sender.send('replyinfo', msg1);
 // })
 
@@ -105,21 +107,37 @@ var bindMsg = message.bindMsg;
 // }
 
 //测试utxo
-// var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
-// var URL = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]'
-// var URL = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]'
-// dhttp({
-//     method: 'GET',
-//     url: URL,
-// }, function (err, res) {
-//     if (err) throw err;
-//     var buf = res.body;
-//     console.log('> res:', buf, buf.length);
-//     var payload = message.g_parse(buf);
-//     console.log('> res:', payload, payload.length);
-//     var msg = message.parseUtxo(payload)[1];
-//     console.log('> msg:', msg);
-// })
+var URL = 'http://raw0.nb-chain.net/txn/state/account?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&uock=0&uock2=0';
+var URL = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]'
+var URL = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118Mi5XxqmqTBp7TnPQd1Hk9XYagJQpDcZu6EiGE1VbXHAw9iZGPV&num=5&uock2=[]'
+dhttp({
+    method: 'GET',
+    url: URL,
+}, function (err, res) {
+    if (err) throw err;
+    var buf = res.body;
+    console.log('> res:', buf, buf.length);
+    var payload = message.g_parse(buf);
+    console.log('> res:', payload, payload.length);
+    var msg = message.parseUtxo(payload)[1];
+    msg = utxoScript(msg);
+
+    console.log('> msg:', msg);
+})
+
+function utxoScript(msg) {
+    var txns = msg['txns'];
+    for (var i = 0; i < txns.length; i++) {
+        var tx_outs = txns[i]['tx_out'];
+        for (var j = 0; j < tx_outs.length; j++) {
+            var pk_script = tx_outs[j]['pk_script'];
+            // var t = new Tokenizer(s)._script;
+            var s = opscript._process(pk_script);
+            tx_outs[j]['pk_script'] = s;
+        }
+    }
+    return msg;
+}
 
 //测试block
 // var url = 'http://raw0.nb-chain.net/txn/state/block?&hash=0000000000000000000000000000000000000000000000000000000000000000&hi=20299'
@@ -222,7 +240,7 @@ var bindMsg = message.bindMsg;
 //     return bh.bufToStr(h);
 // }
 
-const Wallet=require('./wallet');
+// const Wallet=require('./wallet');
 
 // var wallet =new Wallet();
 // wallet.changeWallet('111.cfg','123456');

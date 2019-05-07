@@ -69,6 +69,8 @@ function TxnIn() {
 }
 
 
+
+
 function MakeSheet() {
 	this.vcn = 0;
 	this.sequence = 0;
@@ -428,17 +430,17 @@ function CHR(n) {
 // 测试
 // var pay_to = '', from_uocks = '';
 // var ret = query_sheet(pay_to, from_uocks);
-var txn_hash = '9ab3daafb5d86efcbd4554855f286c96a0e2a48db0d90048583e11b48d74c9eb'
-var url = WEB_SERVER_ADDR + '/txn/sheets/state?hash=' + txn_hash;
-dhttp({
-	method: 'GET',
-	url: url,
-}, function (err, res) {
-	loop_query_tran(res);
-});
+// var txn_hash = '9ab3daafb5d86efcbd4554855f286c96a0e2a48db0d90048583e11b48d74c9eb'
+// var url = WEB_SERVER_ADDR + '/txn/sheets/state?hash=' + txn_hash;
+// dhttp({
+// 	method: 'GET',
+// 	url: url,
+// }, function (err, res) {
+// 	loop_query_tran(res);
+// });
 
 module.exports = {
-	query_sheet
+	query_sheet,TxnIn,Transaction
 }
 
 

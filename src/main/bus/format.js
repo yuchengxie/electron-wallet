@@ -265,7 +265,8 @@ var udpconfirm = {
             ['hash', byte(32)],
             // ['args', 'q']
             // ['args', 'uq']
-            ['args', 'q']
+            // ['args', 'q']
+            ['args', 'uq']
         ]
     }
 }

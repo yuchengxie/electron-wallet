@@ -132,7 +132,7 @@ function getWaitSubmit(res) {
 			var payload = make_payload(pks_out0, orgsheetMsg.version, orgsheetMsg.tx_in, orgsheetMsg.tx_out, 0, idx, hash_type)  //lock_time=0
 			//签名
 			console.log('>>> ready sign payload:', payload, bufferhelp.bufToStr(payload), payload.length);
-			wallet=new Wallet();
+			wallet = new Wallet();
 			var sig = Buffer.concat([wallet.sign(payload), CHR(hash_type)]);
 			console.log('sig:', sig, sig.length, bufferhelp.bufToStr(sig));
 			var pub_key = wallet.getPubKeyBuf();
@@ -222,11 +222,13 @@ function loop_query_tran(res) {
 		if (confirmsg.hash == bufferhelp.bufToStr(hash_)) {
 			// Transaction state: confirm=106, height=35208, index=1
 			var args = confirmsg['args'];
-			// 282806416607624  1013600008988
-			var hi = (args & 0xffffffff);
-			var num = ((args >> 32) & 0xffff);
-			var idx = ((args >> 48) & 0xffff);
-			var state = '[' + chinaTime('YYYY-MM-DD HH:mm:ss') + '] ' + 'tran_hash=' + bufferhelp.bufToStr(hash_) + ' confirm=' + num + ' height=' + hi + ' idx=' + idx;
+			// var height = (args & 0xffffffff);
+			var height = bufferhelp.bufToNumer(args.slice(4, 8));
+			// var confirm = ((args >> 32) & 0xffff);
+			var confirm = bufferhelp.bufToNumer(args.slice(2, 4));
+			// var index = ((args >> 48) & 0xffff);
+			var index = bufferhelp.bufToNumer(args.slice(0, 2));
+			var state = '[' + chinaTime('YYYY-MM-DD HH:mm:ss') + '] ' + 'tran_hash=' + bufferhelp.bufToStr(hash_) + ' confirm=' + confirm + ' height=' + height + ' idx=' + index;
 			console.log(state);
 		}
 	}
@@ -424,18 +426,16 @@ function CHR(n) {
 }
 
 // 测试
-var pay_to = '', from_uocks = '';
-var ret = query_sheet(pay_to, from_uocks);
-// var txn_hash = '5a710aae7c5fba90a1459e70cdcaece4537627a12f4eb3d619f2e44c317f7afb'
-// var url = WEB_SERVER_ADDR + '/txn/sheets/state?hash=' + txn_hash;
-// setInterval(() => {
-// 	dhttp({
-// 		method: 'GET',
-// 		url: url,
-// 	}, function (err, res) {
-// 		loop_query_tran(res);
-// 	})
-// }, 100);
+// var pay_to = '', from_uocks = '';
+// var ret = query_sheet(pay_to, from_uocks);
+var txn_hash = '9ab3daafb5d86efcbd4554855f286c96a0e2a48db0d90048583e11b48d74c9eb'
+var url = WEB_SERVER_ADDR + '/txn/sheets/state?hash=' + txn_hash;
+dhttp({
+	method: 'GET',
+	url: url,
+}, function (err, res) {
+	loop_query_tran(res);
+});
 
 module.exports = {
 	query_sheet

@@ -132,12 +132,10 @@ function getWaitSubmit(res) {
 			var payload = make_payload(pks_out0, orgsheetMsg.version, orgsheetMsg.tx_in, orgsheetMsg.tx_out, 0, idx, hash_type)  //lock_time=0
 			//签名
 			console.log('>>> ready sign payload:', payload, bufferhelp.bufToStr(payload), payload.length);
-			wallet = new Wallet('xieyc', 'default.cfg');
-			console.log('wallet:', wallet);
+			wallet=new Wallet();
 			var sig = Buffer.concat([wallet.sign(payload), CHR(hash_type)]);
 			console.log('sig:', sig, sig.length, bufferhelp.bufToStr(sig));
-			// var pub_key = wallet.getBIP32().publicKey;
-			var pub_key = wallet.BIP32.publicKey;
+			var pub_key = wallet.getPubKeyBuf();
 			console.log('pub_key:', pub_key, pub_key.length);
 			var sig_script = Buffer.concat([CHR(sig.length), sig, CHR(pub_key.length), pub_key]);
 			console.log('sig_script:', sig_script, sig_script.length, bufferhelp.bufToStr(sig_script));
@@ -426,8 +424,8 @@ function CHR(n) {
 }
 
 // 测试
-// var pay_to = '', from_uocks = '';
-// var ret = query_sheet(pay_to, from_uocks);
+var pay_to = '', from_uocks = '';
+var ret = query_sheet(pay_to, from_uocks);
 // var txn_hash = '5a710aae7c5fba90a1459e70cdcaece4537627a12f4eb3d619f2e44c317f7afb'
 // var url = WEB_SERVER_ADDR + '/txn/sheets/state?hash=' + txn_hash;
 // setInterval(() => {

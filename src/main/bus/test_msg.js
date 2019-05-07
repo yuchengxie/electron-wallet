@@ -224,11 +224,6 @@ var bindMsg = message.bindMsg;
 
 const Wallet=require('./wallet');
 
-// var wallet = new Wallet('xieyc', 'default.cfg');
-var wallet =new Wallet();
-wallet = new Wallet();
-wallet.getAddrFromWallet();
-console.log('wallet:',wallet);
-var a=1;
-// wallet = new Wallet(, data[2]);
-
+// var wallet =new Wallet();
+// wallet.changeWallet('111.cfg','123456');
+// var a=1;

@@ -28,15 +28,13 @@ ipcMain.on('changewallet', function (event, data) {
     if (data.length == 2) {
         var currentpassword = data[0];
         var currentfile = data[1] + '.cfg';
-        var w = new Wallet(currentpassword, currentfile);
         var result = '';
-        if (w.validate()) {
-            wallet = w;
+        if (wallet.changeWallet(currentfile, currentpassword)) {
             result = 'true';
         } else {
             result = 'false';
         }
-        event.sender.send('replychangewallet', [result, wallet.filename]);
+        event.sender.send('replychangewallet', [result, currentfile]);
     }
 })
 
@@ -44,6 +42,9 @@ ipcMain.on('save', function (event, data) {
     console.log(data);
     if (data.length == 3) {
         wallet = new Wallet(data[1], data[2]);
+        console.log('>>> save data :', data[1], data[2]);
+        console.log('>>> save after wallet:', wallet);
+
         var addr = wallet.save(data[0]);
         console.log(addr);
         if (addr) {
@@ -131,17 +132,20 @@ ipcMain.on('info', function (event, data) {
     let before = 0;
     let address = '';
     var addr = data;
-    console.log('wallet:',wallet);
+    console.log('info wallet:', wallet);
     if (addr.length == 0) {
-        if (wallet.BIP32 == null) {
-            console.log('default wallet not exist,need create a wallet');
+        //setting default wallet address
+        var d = wallet.getWalletData();
+        if (d) {
+            addr = d['address'];
+        } else {
+            console.log('info read data null');
             return;
         }
-        //default wallet address
-        console.log('>>> ready read wallet address');
-        addr = wallet.getAddrFromWallet();
-        console.log('>>> addr:',addr);
-        console.log('>>> wallet:',wallet);
+        console.log('>>> ready read wallet address:', addr);
+        if (!addr) {
+            return;
+        }
     }
     console.log('>>> url addr:', addr);
 
@@ -186,8 +190,20 @@ ipcMain.on('info', function (event, data) {
 })
 
 ipcMain.on('utxo', function (event, data) {
-    var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118hfRMRrJMgSCoV9ztyPcjcgcMZ1zThvqRDLUw3xCYkZwwTAbJ5o&num=2&uock2=[]';
-    var addr = wallet.getAddrFromWallet();
+    // var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=1118hfRMRrJMgSCoV9ztyPcjcgcMZ1zThvqRDLUw3xCYkZwwTAbJ5o&num=2&uock2=[]';
+    // var addr = wallet.getAddrFromWallet();
+    var addr = '';
+    var url = '';
+    var d = wallet.getWalletData();
+    if (d) {
+
+        addr = d['address'];
+        url = 'http://raw0.nb-chain.net/txn/state/uock?' + addr + '&num=2&uock2=[]';
+    } else {
+        //todo
+        return;
+    }
+    console.log('utxo url:', url);
     // var url = 'http://raw0.nb-chain.net/txn/state/uock?addr=' + addr + '&num=5&uock2=[]';
     // var url = WEB_SERVER_ADDR + '/txn/state/uock?addr=' + addr + '&num=5&uock2=[]';
     // var url = WEB_SERVER_ADDR + '/txn/state/uock?addr=' + addr;

@@ -127,7 +127,7 @@ function getWaitSubmit(res) {
 
 	orgsheetMsg = msg.parse(payload, 0)[1];
 	console.log('>>>>>> orgsheetMsg:', orgsheetMsg);
-	
+
 	//check pay_to balance
 
 	var d = {};
@@ -225,7 +225,8 @@ function prepare_txn2_(protocol_id, str_list, scan_count, min_utxo, max_utxo, so
 	var pay_from = [];
 	var pay_from1 = new PayFrom();
 	pay_from1.value = 0;
-	pay_from1.address = wallet.getAddrFromWallet();
+	// pay_from1.address = wallet.getAddrFromWallet();
+	pay_from1.address = wallet.getWalletData()['address'];
 	pay_from.push(pay_from1);
 
 	ex_format = '';

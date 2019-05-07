@@ -21,60 +21,16 @@ var address;
 function Wallet(password, filename, type = true) {//Wallet
     this.password = password;
     this.filename = filename == undefined ? default_file : filename;
-    // this.filename=default_file;
-    // this.init = init;
     this.create = create;
     this.save = save;
     this.sign = sign;
     this.genAddr = genAddr;
-    this.verify = verify;
     this.getWalletData = getWalletData;
-    this.validate = validate;
-    this.getAddrFromWallet = getAddrFromWallet;
     this.getWalletFileList = getWalletFileList;
     this.dhash256 = dhash256;
-    this.BIP32 = null;
-    this.cfgdata = '';
-    console.log('filelegal out coming ...');
+    this.changeWallet = changeWallet;
+    this.getPubKeyBuf = getPubKeyBuf;
     mkdirsSync(fp);
-    if (fileLegal(default_file, type)) {
-        console.log('filelegal in coming ...');
-        this.BIP32 = getBIP32(default_file);
-        this.cfgdata = readFromFile(default_file);
-    }
-}
-
-// new Wallet('123456','aaa.cfg');
-
-function fileLegal(filename, type) {
-    var dir = '';
-    if (type == true || filename == default_file) {
-        dir = default_fp;
-    } else {
-        dir = fp;
-    }
-    if (filename && !filename.includes('.cfg')) {
-        filename = filename + '.cfg';
-    }
-    //file exits
-    var isFileExist = fs.existsSync(dir + filename);
-    if (isFileExist) {
-        var datacfg = fs.readFileSync(dir + filename, "utf-8");//sync read
-        if (datacfg && datacfg.length > 0) {
-            return true;
-        } else {
-            console.log('read file cfg data illegal,maybe empty');
-            return false;
-        }
-    } else {
-        console.log('default.cfg not exist,need create a wallet');
-        return false;
-    }
-    return false;
-}
-
-function isFileExist(filename) {
-    fs.existsSync(filename);
 }
 
 function WalletData() {
@@ -87,25 +43,6 @@ function WalletData() {
     this.pubkey = '';
     this.password = '';
     this.address = '';
-}
-
-function init() {
-    mkdirsSync(fp);
-    var a = fs.existsSync(default_fullpath);
-    console.log('isExist:', a);
-    if (fs.existsSync(default_fullpath)) {
-        console.log('default.cfg存在');
-        var data = readFromFile(default_file, true);
-        if (data && data['password']) {
-            return new Wallet(data['password'], default_file);
-        } else {
-            console.log('wallet file not exist,need create new');
-            return new Wallet();
-        }
-    } else {
-        console.log('wallet file not exist,need create new');
-        return new Wallet();
-    }
 }
 
 function create(str) {// create loacl wallet *.cfg file 
@@ -162,22 +99,14 @@ function genAddr(BIP32) {// generate address
     return addr;
 }
 
-function getBIP32(filename) {
-    if (filename == undefined) throw 'wallet error';
-    var data = readFromFile(filename);
-    var encrypt_prvkey = data['prvkey'];
-    var pwd = data['password'];
-    var s = AES.Decrypt(encrypt_prvkey, pwd);
-    // var s = AES.Decrypt(encrypt_prvkey, password);
-    var n = bs58check.decode(s.slice(2));
-    var prvKeyBuf = n.slice(1, 33);
-    var BIP32 = bip32.fromPrivateKey(prvKeyBuf, new Buffer(32));
-    return BIP32;
-}
-
 function getWalletData() {
     var wd = new WalletData();
-    var data = readFromFile(this.filename);
+    //default file
+    var data = readDefaultFile();
+    if (!data) {
+        console.log('getWalletData default not exist');
+        return;
+    }
     wd.coin_type = data['coin_type'];
     wd.encrypted = data['encrypted'];
     wd.password = data['password'];
@@ -186,60 +115,91 @@ function getWalletData() {
     wd.type = data['type'];
     wd.vcn = data['vcn'];
     wd.testnet = data['testnet'];
+    wd.address = data['address'];
     return wd;
 }
 
-function getAddrFromWallet() {
-    var filename = this.filename;
-    var data = readFromFile(filename);
-    var encrypt_prvkey = data['prvkey'];
-    var password = data['password'];
-    this.password = password;
-    var s = AES.Decrypt(encrypt_prvkey, password);
-    var n = bs58check.decode(s.slice(2));
-    var prvKeyBuf = n.slice(1, 33);
-    var BIP32 = bip32.fromPrivateKey(prvKeyBuf, new Buffer(32));
-    var addr = genAddr(BIP32);
-    return addr;
+function changeWallet(filename, password) {
+    var isValid = validateCustom(filename, password);
+    if (isValid) {
+        var data_cus = readCustomFile(filename);
+        fs.writeFileSync(default_fullpath, JSON.stringify(data_cus), 'utf-8');
+        return true;
+    }
+    return false;
+}
+
+function validateCustom(filename, password) {
+    var data = readCustomFile(filename, password);
+    var pwd = '';
+    if (data) {
+        pwd = data['password'];
+        if (pwd == password) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
 }
 
 function getWalletFileList() {
     return readDirSync(fp);
 }
 
-function validate() {
-    var data = readFromFile(this.filename);
-    if (data['password'] == this.password) {
-        return true;
-    }
-    return false;
+function readDefaultFile() {
+    return readFileSync(default_fullpath);
 }
 
-function readFromFile(filename, isDefault) {//read file
-    // mkdirsSync(fp);
-    var dir = '';
-    if (isDefault == true || filename == default_file) {
-        dir = default_fp;
+function readCustomFile(customFileName) {
+    return readFileSync(fp + customFileName);
+}
+
+function readFileSync(filepath) {
+    if (fs.existsSync(filepath)) {
+        const data = fs.readFileSync(filepath, 'utf-8');
+        if (data && data.length > 0) {
+            return JSON.parse(data);
+        } else {
+            console.log(filepath + ' read data error');
+            return null;
+        }
     } else {
-        dir = fp;
-    }
-    if (!filename.includes('.cfg')) {
-        filename = filename + '.cfg';
-    }
-    const data = fs.readFileSync(dir + filename, "utf-8");//sync read
-    if (data && data.length > 0) {
-        return JSON.parse(data);
-    } else {
+        console.log(filepath + ' not exist');
         return null;
     }
+}
+
+function getBIP32() {
+    var data = readDefaultFile();
+    if (data) {
+        var encrypt_prvkey = data['prvkey'];
+        var pwd = data['password'];
+        var s = AES.Decrypt(encrypt_prvkey, pwd);
+        var n = bs58check.decode(s.slice(2));
+        var prvKeyBuf = n.slice(1, 33);
+        var BIP32 = bip32.fromPrivateKey(prvKeyBuf, new Buffer(32));
+        console.log('>>> getBIP32:', BIP32);
+        return BIP32;
+    } else {
+        throw 'wallet err,can not sign';
+    }
+}
+
+function getPubKeyBuf() {
+    var b = getBIP32();
+    return b.publicKey;
 }
 
 //私钥对消息进行签名
 function sign(buf) {
     var hash = bitcoinjs.crypto.hash256(buf);
-    var wif = this.BIP32.toWIF();
+    var b = getBIP32();
+    var wif = b.toWIF();
     // L2JVe4yQvo3Phr2kjh9YUjHxN2d7v4Uc1QjihcLFv8VxyNMoVRyj
     var keyPair = bitcoinjs.ECPair.fromWIF(wif);//sign with prvkey
+    // var signature = keyPair.sign(hash).toDER(); // ECSignature对象
     var signature = keyPair.sign(hash).toDER(); // ECSignature对象
 
     console.log('>>> sign', signature, bufferhelp.bufToStr(signature));
@@ -248,12 +208,23 @@ function sign(buf) {
     return signature;
 }
 
+//用当前钱包私钥进行签名
+// function sign(buf) {
+//     var hash = bitcoinjs.crypto.hash256(buf);
+//     var BIP32 = getBIP32();
+//     var wif = BIP32.toWIF();
+//     // L2JVe4yQvo3Phr2kjh9YUjHxN2d7v4Uc1QjihcLFv8VxyNMoVRyj
+//     var keyPair = bitcoinjs.ECPair.fromWIF(wif);//sign with prvkey
+//     // var signature = keyPair.sign(hash).toDER(); // ECSignature对象
+//     var signature = keyPair.sign(hash).toDER(); // ECSignature对象
+//     console.log('>>> sign', signature, bufferhelp.bufToStr(signature));
+//     console.log('>>> payload转换hash:\n', hash.length, bufferhelp.bufToStr(hash));
+//     console.log('>>> 公钥:\n', keyPair.getPublicKeyBuffer().toString('hex'));
+//     return signature;
+// }
+
 function dhash256(buf) {
     return bitcoinjs.crypto.hash256(bitcoinjs.crypto.hash256(buf));
-}
-
-function verify() {
-
 }
 
 function saveToFile(encrypt, filename, password) {//save file format *.cfg
@@ -283,18 +254,6 @@ function saveToFile(encrypt, filename, password) {//save file format *.cfg
         })
     })
 }
-
-//递归创建目录 同步方法  
-// function initdirs() {
-//     if (fs.existsSync(fp)) {
-//         return true;
-//     } else {
-//         if (mkdirsSync(path.dirname(fp))) {
-//             fs.mkdirSync(fp);
-//             return false;
-//         }
-//     }
-// }
 
 //递归创建目录 同步方法  
 function mkdirsSync(dirname) {

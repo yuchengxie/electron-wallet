@@ -10,6 +10,7 @@ const bs58 = require('bs58');
 const makesheetbinary = require('./makesheet');
 const transbinary = require('./transaction');
 const chinaTime = require('china-time');
+const opscript = require('./op/script');
 
 var bindMsg = message.bindMsg;
 var seq = 0;
@@ -102,8 +103,11 @@ function getWaitSubmit(res) {
 
 	orgsheetMsg = msg.parse(payload, 0)[1];
 	console.log('>>>>>> orgsheetMsg:', orgsheetMsg);
-
+	wallet = new Wallet();
+	var pubkeybuf = wallet.getPubKeyBuf();
+	var pubichash = wallet.publickey_to_hash(pubkeybuf);
 	//check pay_to balance
+	var coin_hash = Buffer.concat([pubichash, Buffer([0x00])]);
 
 	var d = {};
 	var payto = makesheet.pay_to;
@@ -116,14 +120,42 @@ function getWaitSubmit(res) {
 		}
 	}
 
-	console.log('d:', d);
-
-	var pks_out0 = orgsheetMsg.pks_out[0].items;
 	// var b_pks_out0=bufferhelp.hexStrToBuffer(pks_out0);
 	// var pks_num = pks_out0.length;
+
+	for (var idx = 0; idx < orgsheetMsg.tx_out.length; idx++) {
+		var item = orgsheetMsg.tx_out[idx];
+		if (item.value == 0 && item.pk_script.slice(0, 1) == '') {
+			continue;
+		}
+		var tokenzier = new opscript.Tokenizer(item.pk_script, null);
+		var addr = tokenzier.get_script_address();
+		if (!addr) {
+			console.log('Error: invalid output address (idx=)', idx);
+		} else {
+			value_ = d[addr];
+			if (item.value != value_) {
+				if (value_ == undefined && addr.slice(4) == bufferhelp.bufToStr(coin_hash)) {
+					
+				} else {
+					console.log('Error: invalid output value (idx=)', idx);
+				}
+			}
+			delete d[addr];
+		}
+	}
+
+	for (k in d) {
+		console.log(k, d[k]);
+		if (coin_hash != addr.slice(2)) {
+			console.log('Error: unknown output address');
+		}
+		return 0;
+	}
+
+	var pks_out0 = orgsheetMsg.pks_out[0].items;
 	pks_num = orgsheetMsg.pks_out.length;
 	var tx_ins2 = [];
-
 	var tx_In = orgsheetMsg.tx_in;
 	for (var idx = 0; idx < tx_In.length; idx++) {
 		var tx_in = tx_In[idx];
@@ -134,7 +166,6 @@ function getWaitSubmit(res) {
 			var payload = make_payload(pks_out0, orgsheetMsg.version, orgsheetMsg.tx_in, orgsheetMsg.tx_out, 0, idx, hash_type)  //lock_time=0
 			//签名
 			console.log('>>> ready sign payload:', payload, bufferhelp.bufToStr(payload), payload.length);
-			wallet = new Wallet();
 			var sig = Buffer.concat([wallet.sign(payload), CHR(hash_type)]);
 			console.log('sig:', sig, sig.length, bufferhelp.bufToStr(sig));
 			var pub_key = wallet.getPubKeyBuf();
@@ -428,8 +459,8 @@ function CHR(n) {
 }
 
 // 测试
-// var pay_to = '', from_uocks = '';
-// var ret = query_sheet(pay_to, from_uocks);
+var pay_to = '', from_uocks = '';
+var ret = query_sheet(pay_to, from_uocks);
 // var txn_hash = '9ab3daafb5d86efcbd4554855f286c96a0e2a48db0d90048583e11b48d74c9eb'
 // var url = WEB_SERVER_ADDR + '/txn/sheets/state?hash=' + txn_hash;
 // dhttp({
@@ -440,7 +471,7 @@ function CHR(n) {
 // });
 
 module.exports = {
-	query_sheet,TxnIn,Transaction
+	query_sheet, TxnIn, Transaction
 }
 
 

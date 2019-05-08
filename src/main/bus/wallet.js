@@ -30,6 +30,7 @@ function Wallet(password, filename, type = true) {//Wallet
     this.dhash256 = dhash256;
     this.changeWallet = changeWallet;
     this.getPubKeyBuf = getPubKeyBuf;
+    this.publickey_to_hash = publickey_to_hash;
     mkdirsSync(fp);
 }
 
@@ -208,20 +209,17 @@ function sign(buf) {
     return signature;
 }
 
-//用当前钱包私钥进行签名
-// function sign(buf) {
-//     var hash = bitcoinjs.crypto.hash256(buf);
-//     var BIP32 = getBIP32();
-//     var wif = BIP32.toWIF();
-//     // L2JVe4yQvo3Phr2kjh9YUjHxN2d7v4Uc1QjihcLFv8VxyNMoVRyj
-//     var keyPair = bitcoinjs.ECPair.fromWIF(wif);//sign with prvkey
-//     // var signature = keyPair.sign(hash).toDER(); // ECSignature对象
-//     var signature = keyPair.sign(hash).toDER(); // ECSignature对象
-//     console.log('>>> sign', signature, bufferhelp.bufToStr(signature));
-//     console.log('>>> payload转换hash:\n', hash.length, bufferhelp.bufToStr(hash));
-//     console.log('>>> 公钥:\n', keyPair.getPublicKeyBuffer().toString('hex'));
-//     return signature;
-// }
+function publickey_to_hash(publicKey, vcn = 0) {
+    if (vcn == null) {
+        return bitcoinjs.crypto.hash256(publicKey);
+    } else {
+        var pubHash = sha512(publicKey);
+        var pubbuf = bufferhelp.hexStrToBuffer(pubHash);
+        var s1 = bitcoinjs.crypto.ripemd160(pubbuf.slice(0, 32));
+        var s2 = bitcoinjs.crypto.ripemd160(pubbuf.slice(32, 64));
+        return bitcoinjs.crypto.sha256(Buffer.concat([s1, s2]));
+    }
+}
 
 function dhash256(buf) {
     return bitcoinjs.crypto.hash256(bitcoinjs.crypto.hash256(buf));

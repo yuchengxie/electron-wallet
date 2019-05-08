@@ -1,23 +1,25 @@
 const bh = require('../bufferhelp');
 const opcodes = require('./opcodes');
 
-
 var opcode;
 var value;
 var verify;
 var bytes_;
 var OP_LITERAL = 0x1ff;
-var _tokens = [];
 var _expand_verify;
+
 function Tokenizer(pk_script, expand_verify = false) {
     _expand_verify = expand_verify;
-
-    // this._script = _process(pk_script);
+    this._script = '';
+    this._tokens = [];
+    this._process = _process;
+    this.get_script_address = get_script_address;
+    this.match_template = match_template;
+    this._process(pk_script);
 }
 
-// 76b8230000e5c7b20d5b5037f86e9861cd8795be42e8093c61bd36256a2b5a22df6508a8ba00b7ac
-// OP_DUP OP_HASH512 0000e5c7b20d5b5037f86e9861cd8795be42e8093c61bd36256a2b5a22df6508a8ba00 OP_HASHVERIFY OP_CHECKSIG
 function _process(str_script) {
+    var _tokens = [];
     var script = bh.hexStrToBuffer(str_script);
     while (script.length > 0) {
         // console.log('script:', script, script.slice(0, 1)); s
@@ -62,8 +64,9 @@ function _process(str_script) {
         if (verify) {
             _tokens.push(opcodes.OP_VERIFY, Buffer(0), null);
         }
+
     }
-    // console.log('_tokens:', _tokens);
+    this._tokens = _tokens;
     var output = [];
     for (k1 in _tokens) {
         var t = _tokens[k1];
@@ -84,7 +87,8 @@ function _process(str_script) {
             s += output[i];
         }
     }
-    return s;
+    // return s;
+    this._script = s;
 }
 
 var _Verify = {
@@ -92,21 +96,75 @@ var _Verify = {
     0x9d: opcodes.OP_NUMEQUAL,
     0xad: opcodes.OP_CHECKSIG,
     0xaf: opcodes.OP_CHECKMULTISIG
-    // opcodes.OP_EQUALVERIFY: opcodes.OP_EQUAL,
-    // opcodes.OP_NUMEQUALVERIFY: opcodes.OP_NUMEQUAL,
-    // opcodes.OP_CHECKSIGVERIFY: opcodes.OP_CHECKSIG,
-    // opcodes.OP_CHECKMULTISIGVERIFY: opcodes.OP_CHECKMULTISIG,
 }
 
 function ORD(ch) {
     return bh.bufToNumer(ch);
 }
-// var s = '76b8230000e5c7b20d5b5037f86e9861cd8795be42e8093c61bd36256a2b5a22df6508a8ba00b7ac';
-// var t = new Tokenizer(s)._script;
-// console.log('t:',t);
 
+function get_script_address(pk_script, node, block = null) {
+    if (match_template(this._tokens, TEMPLATE_PAY_TO_PUBKEY_HASH)) {
+        return this._tokens[2][2];
+    } else if (block && this._tokens.match_template(TEMPLATE_PAY_TO_MINERHASH)) {
+        var hi = node._bind_vcn / 256;
+        var lo = node._bind_vcn % 256;
+        return CHR(lo) + CHR(hi) + block.miner + node.coin.mining_coin_type;
+    }
+    return null
+}
+
+function CHR(i) {
+    return null;
+}
+
+var _lambda = (t) => {
+    return t.length == 5;
+}
+
+var TEMPLATE_PAY_TO_PUBKEY_HASH = [_lambda, opcodes.OP_DUP,
+    opcodes.OP_HASH512, _is_coin_hash, opcodes.OP_HASHVERIFY,
+    opcodes.OP_CHECKSIG];
+var TEMPLATE_PAY_TO_MINERHASH = [_lambda, opcodes.OP_DUP,
+    opcodes.OP_HASH512, opcodes.OP_MINERHASH, opcodes.OP_EQUALVERIFY,
+    opcodes.OP_CHECKSIG]
+
+function match_template(tokens, template) { //given a template, True if this script matches
+    if (!template[0](tokens)) {
+        return false;
+    }
+    var z = zip(tokens, template.slice(1, template.length));
+    for (var i = 0; i < z.length; i++) {
+        var m = z[i];
+        if (typeof m[1] == 'function') {
+            if (!m[1](m[0][0], m[0][1], m[0][2])) {
+                return false;
+            }
+        } else if (m[1] != m[0][0]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function zip(tokens, templates) {
+    var b = [];
+    var len = tokens.length < templates.length ? tokens.length : templates.length;
+    for (var i = 0; i < len; i++) {
+        b.push([tokens[i], templates[i]]);
+    }
+    return b;
+}
+
+function _is_coin_hash(opcode, bytes_, data) {
+    if (opcode != OP_LITERAL) {
+        return false;
+    }
+    if (data.length <= 34) {
+        return false;
+    }
+    return true;
+}
 
 module.exports = {
-    // Tokenizer
-    _process
+    Tokenizer
 }
